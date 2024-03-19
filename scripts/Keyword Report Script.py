@@ -1,8 +1,10 @@
 import os
 import re
 import nltk
-from pathlib import Path
+import time
 import markdown
+from pathlib import Path
+from collections import Counter
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -14,8 +16,7 @@ nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 
 file_path = ".."
-words = []
-frequencies = []
+word_freq = []
 markdown_text = []
 tokens = []
 tokens_lemma = []
@@ -23,7 +24,7 @@ tokens_punct = []
 unique_tokens = []
 seen = set()
 
-def markdown_directory_to_bag_of_words(path):
+def markdown_directory_to_keywords(path, unique):
     """
     Converts a markdown file into a bag of words.
 
@@ -38,11 +39,10 @@ def markdown_directory_to_bag_of_words(path):
 
     # initializing punctuations string
     punc = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
-    symbols = ['','.',":","'s","(",")","","[","]",None,"’",",","`"]
+    symbols = ['','.',":","'s","(",")","","[","]",None,"’",",","`","--","|",";"]
 
     # Iterate through each file in the directory
     try:
-
         for filename in os.listdir(path):
             # Construct the full file path
             markdown_file = os.path.join(path, filename)
@@ -59,27 +59,43 @@ def markdown_directory_to_bag_of_words(path):
                     # Make sure keywords are lowercase
                     tokens.append(word_tokenize(text.lower()))
 
+            # filter out stop words
             filtered_tokens = [w for w in [item for row in tokens for item in row] if not w in stop_words]
+
+            #remove punctuation
             tokens_punct = [w for w in filtered_tokens if w not in symbols]
 
             # lemming
             for token in tokens_punct:
                 tokens_lemma.append(lemmatizer.lemmatize(token))
 
+            # count words
+            word_counts = Counter(tokens_lemma)
+            top_n_words = word_counts.most_common(100)
+
+            for word, count in top_n_words:
+                word_freq.append((word,count))
+
             # remove duplicate words
             for token in tokens_lemma:
                 if token not in seen:
                     unique_tokens.append(token)
                     seen.add(token)
-
-            return unique_tokens
     except:
         print("Unable to load Zettelkasten files...")
-    else:
-        print("Keywords Extraction Successful!")
+    
+    print("Keyword Extraction Successful.")
+
+    if (unique):
+        return len(unique_tokens)
+    else: return word_freq
 
 if __name__ == "__main__":
     # Save Report
     with open(f"{file_path}/output/keyword report.txt", 'w') as file:
-        for item in markdown_directory_to_bag_of_words(f"{file_path}/Zettelkasten/"):
-            file.write(f"{item}\n")
+        file.write(f"Unique Words: {markdown_directory_to_keywords(f'{file_path}/Zettelkasten/', True)}")
+        file.write("\n\nTop 100 Words:\n\n")
+        for n in sorted(markdown_directory_to_keywords(f"{file_path}/Zettelkasten/", False),key=lambda a: a[1], reverse=True):
+            w, f = n
+            file.write(f"{w}: {f}\n")
+    os.system('pause')
