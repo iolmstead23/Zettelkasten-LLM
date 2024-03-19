@@ -16,7 +16,6 @@ nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 
 file_path = ".."
-word_freq = []
 markdown_text = []
 tokens = []
 tokens_lemma = []
@@ -50,7 +49,7 @@ def markdown_directory_to_keywords(path, unique):
             # Check if it's a markdown file
             if Path(markdown_file).suffix == '.md':
                 # Read the markdown file
-                with open(markdown_file, 'r') as f:
+                with open(markdown_file, 'r', encoding="utf8") as f:
                     # Convert the markdown to HTML
                     html = markdown.markdown(f.read())
 
@@ -69,32 +68,25 @@ def markdown_directory_to_keywords(path, unique):
             for token in tokens_punct:
                 tokens_lemma.append(lemmatizer.lemmatize(token))
 
-            # count words
-            word_counts = Counter(tokens_lemma)
-            top_n_words = word_counts.most_common(100)
-
-            for word, count in top_n_words:
-                word_freq.append((word,count))
-
             # remove duplicate words
             for token in tokens_lemma:
                 if token not in seen:
                     unique_tokens.append(token)
                     seen.add(token)
-    except:
-        print("Unable to load Zettelkasten files...")
-    
-    print("Keyword Extraction Successful.")
-
-    if (unique):
-        return len(unique_tokens)
-    else: return word_freq
+    except IOError as e:
+        print("Unable to load Zettelkasten files...", e)
+    else:
+        print("Keyword Extraction Successful.")
+        if (unique):
+            return len(unique_tokens)
+        else:
+            return [(t,tokens_lemma.count(t)) for t in unique_tokens]
 
 if __name__ == "__main__":
     # Save Report
     with open(f"{file_path}/output/keyword report.txt", 'w') as file:
         file.write(f"Unique Words: {markdown_directory_to_keywords(f'{file_path}/Zettelkasten/', True)}")
-        file.write("\n\nTop 100 Words:\n\n")
+        file.write("\n\nWord Counts:\n\n")
         for n in sorted(markdown_directory_to_keywords(f"{file_path}/Zettelkasten/", False),key=lambda a: a[1], reverse=True):
             w, f = n
             file.write(f"{w}: {f}\n")
