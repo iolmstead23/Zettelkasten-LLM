@@ -15,7 +15,7 @@ nltk.download('averaged_perceptron_tagger')
 
 stop_words = set(stopwords.words('english'))
 
-file_path = ".."
+file_path = "../public/"
 markdown_text = []
 tagged_tokens = []
 tokens = []
@@ -71,9 +71,9 @@ if __name__ == "__main__":
     try:
         # Save Report
         with open(f"{file_path}/output/keyword report.txt", 'w') as file:
-            file.write(f"Unique Nouns: {markdown_directory_to_keywords(f'{file_path}/Zettelkasten/', True)}")
+            file.write(f"Unique Nouns: {markdown_directory_to_keywords(f'{file_path}/', True)}")
             file.write("\n\nFrequency Counts:\n\n")
-            for w, f in sorted(markdown_directory_to_keywords(f"{file_path}/Zettelkasten/", False), key=lambda a: a[1], reverse=True):
+            for w, f in sorted(markdown_directory_to_keywords(f"{file_path}/", False), key=lambda a: a[1], reverse=True):
                 file.write(f"{w}: {f}\n")
     except OSError as e:
         print("Unable to Save Keywords", e)
