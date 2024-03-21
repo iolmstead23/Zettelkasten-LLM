@@ -1,3 +1,5 @@
+'use client'
+
 import {
     CalendarIcon,
     ChartPieIcon,
@@ -6,22 +8,22 @@ import {
     HomeIcon,
     UsersIcon,
     Bars3Icon,
-    BellIcon,
 } from '@heroicons/react/24/outline'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment, useState } from 'react'
-import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import { XMarkIcon } from '@heroicons/react/20/solid'
 import Profile from './Profile'
 import Link from 'next/link'
 import Image from 'next/image'
+import Search from './Searchbar'
 
 const navigation = [
-    { name: 'Dashboard', href: '#', icon: HomeIcon, current: true },
+    { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
     { name: 'Team', href: '#', icon: UsersIcon, current: false },
     { name: 'Projects', href: '#', icon: FolderIcon, current: false },
-    { name: 'Calendar', href: '#', icon: CalendarIcon, current: false },
+    { name: 'Calendar', href: '/calender', icon: CalendarIcon, current: false },
     { name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
-    { name: 'Reports', href: '#', icon: ChartPieIcon, current: false },
+    { name: 'Reports', href: '/analytics', icon: ChartPieIcon, current: false },
 ]
 
 function classNames(...classes:any) {
@@ -80,8 +82,10 @@ export default function Sidebars() {
                                     <div className="flex h-16 shrink-0 items-center">
                                         <Image
                                             className="h-8 w-auto"
-                                            src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                                            src="/avatar.jpg"
                                             alt="Your Company"
+                                            width={100}
+                                            height={100}
                                         />
                                     </div>
                                     <nav className="flex flex-1 flex-col">
@@ -116,8 +120,10 @@ export default function Sidebars() {
                 <div className="flex h-16 shrink-0 items-center justify-center">
                     <Image
                         className="h-8 w-auto"
-                        src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                        src="/avatar.jpg"
                         alt="Your Company"
+                        width={100}
+                        height={100}
                     />
                 </div>
                 <nav className="mt-8">
@@ -150,34 +156,7 @@ export default function Sidebars() {
                     {/* Separator */}
                     <div className="h-6 w-px bg-gray-900/10 lg:hidden" aria-hidden="true" />
 
-                    <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-                        <form className="relative flex flex-1" action="#" method="GET">
-                            <label htmlFor="search-field" className="sr-only">
-                                Search
-                            </label>
-                            <MagnifyingGlassIcon
-                            className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-400"
-                            aria-hidden="true"
-                            />
-                            <input
-                            id="search-field"
-                            className="block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-                            placeholder="Search..."
-                            type="search"
-                            name="search"
-                            />
-                        </form>
-                        <div className="flex items-center gap-x-4 lg:gap-x-6">
-                            <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
-                                <span className="sr-only">View notifications</span>
-                                <BellIcon className="h-6 w-6" aria-hidden="true" />
-                            </button>
-
-                            {/* Separator */}
-                            <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" />
-
-                        </div>
-                    </div>
+                    <Search />
                     <Profile />
                 </div>
             </div>

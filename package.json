@@ -9,16 +9,28 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.1",
+    "@mantine/core": "^7.6.2",
     "@mdx-js/react": "^3.0.1",
     "@mdxeditor/editor": "^2.16.0",
     "@next/mdx": "^14.1.4",
+    "@progress/kendo-react-data-tools": "^7.3.0",
+    "@progress/kendo-react-grid": "^7.3.0",
+    "@progress/kendo-react-inputs": "^7.3.0",
+    "@progress/kendo-react-popup": "^7.3.0",
+    "@progress/kendo-react-treeview": "^7.3.0",
+    "@progress/kendo-react-upload": "^7.3.0",
+    "@syncfusion/ej2-react-filemanager": "^25.1.35",
     "@tailwindcss/forms": "^0.5.7",
+    "@yelysei/react-files-drag-and-drop": "^1.0.0",
     "fs": "^0.0.1-security",
     "next": "14.1.4",
     "react": "^18",
-    "react-dom": "^18"
+    "react-complex-tree": "^2.3.7",
+    "react-dom": "^18",
+    "styled-components": "^6.1.8"
   },
   "devDependencies": {
     "@mdx-js/loader": "^3.0.1",
