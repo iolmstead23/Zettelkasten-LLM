@@ -2,10 +2,9 @@
 
 import dynamic from 'next/dynamic'
 import { Suspense, useEffect, useState } from 'react'
+import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar'
 
-import Files from './Files';
-
-const EditorComp = dynamic(() => import('../EditorComponent'), { ssr: false })
+const EditorComp = dynamic(() => import('@/components/EditorComponent'), { ssr: false })
 const file_name = "/notes/Business of IT.md"
 
 export default function Dashboard() {
@@ -32,7 +31,10 @@ export default function Dashboard() {
               <EditorComp markdown={data} />
             </div>
           </Suspense>
-          <Files />
+
+          <aside className="absolute bottom-0 left-20 top-16 hidden w-96 overflow-y-auto border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block">
+            <FileTreeSidebar />
+          </aside>
         </div>
       </div>
     </main>

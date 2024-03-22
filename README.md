@@ -12,7 +12,7 @@ The intended target audience would be academic purposes exclusively. Ethics are 
 
 # Instructions
 
-The scripts folder contain a list of python scripts that are intended to run and save different reports. Save your markdown files in the Zettelkasten folder and run whichever scripts necessary. This will save a text file of the report in the output folder.
+Run npm run dev to get started using the wep app in development mode after cloning.
 
 # Misc
 

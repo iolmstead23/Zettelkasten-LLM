@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 const userNavigation = [
-    { name: 'Your profile', href: '#' },
+    { name: 'Your profile', href: '/profile' },
     { name: 'Sign out', href: '#' },
 ]
 

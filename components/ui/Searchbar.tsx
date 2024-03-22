@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
-import NotificationBell from "./NotificationBell";
+import NotificationBell from "@/components/ui/NotificationBell";
 
 export default function Search() {
     return (

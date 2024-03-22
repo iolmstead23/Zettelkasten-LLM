@@ -15,7 +15,7 @@ import { XMarkIcon } from '@heroicons/react/20/solid'
 import Profile from './Profile'
 import Link from 'next/link'
 import Image from 'next/image'
-import Search from './Searchbar'
+import Search from '@/components/ui/Searchbar'
 
 const navigation = [
     { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
