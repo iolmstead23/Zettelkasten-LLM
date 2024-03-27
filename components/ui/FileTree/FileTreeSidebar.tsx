@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import styledComponents from "styled-components";
-import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai";
-import { DiJavascript1, DiCss3Full, DiHtml5, DiReact } from "react-icons/di";
+import React, { useEffect, useState } from "react"
+import styledComponents from "styled-components"
+import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai"
+import { DiJavascript1, DiCss3Full, DiHtml5, DiReact, DiMarkdown } from "react-icons/di"
+import readMarkdownFiles from "@/lib/readMarkDownFiles"
 
-type FILE_ICONS = {
+interface FILE_ICONS {
   js: React.JSX.Element;
   css: React.JSX.Element;
   html: React.JSX.Element;
@@ -11,7 +12,7 @@ type FILE_ICONS = {
 }
 
 interface CollapsableComponent {
-  isopen: boolean;
+  isopen: boolean | number;
   children: any;
 }
 
@@ -19,12 +20,14 @@ const FILE_ICONS: Record<any, any> = {
   js: <DiJavascript1 />,
   css: <DiCss3Full />,
   html: <DiHtml5 />,
-  jsx: <DiReact />
+  jsx: <DiReact />,
+  md: <DiMarkdown />,
 };
 
 const StyledTree = styledComponents.div`
   line-height: 1.5;
 `;
+
 const StyledFile = styledComponents.div`
   padding-left: 20px;
   display: flex;
@@ -33,6 +36,7 @@ const StyledFile = styledComponents.div`
     margin-left: 5px;
   }
 `;
+
 const StyledFolder = styledComponents.div`
   padding-left: 20px;
 
@@ -44,6 +48,7 @@ const StyledFolder = styledComponents.div`
     }
   }
 `;
+
 const Collapsible: React.FC<CollapsableComponent> = styledComponents.div`
   height: ${p => (p.isopen ? "0" : "auto")};
   overflow: hidden;
@@ -62,11 +67,11 @@ const File = ({ name }: any) => {
 };
 
 const Folder = ({ name, children }: any) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean | number>(+false);
 
   const handleToggle = (e: any) => {
     e.preventDefault();
-    setIsOpen(!isOpen);
+    setIsOpen(+!isOpen);
   };
 
   return (
@@ -84,23 +89,77 @@ const Tree = ({ children }: any) => {
   return <StyledTree>{children}</StyledTree>;
 };
 
+const Root = ({ data }: any) => {
+  return (
+    <>
+      {data && Object.values(data).map(
+        (items: any) => {
+          return (
+            <>
+              {items.map((item: any, index: number) => {
+                if (item.type=="file") {
+                  return (
+                    <div key={index}>
+                      <Tree.File name={item.name} />
+                    </div>
+                  )
+                } else if (item.type=="folder") {
+                  return (
+                    <div key={index}>
+                      <Tree.Folder name={item.name}>
+                        <Root data={item.content} />
+                      </Tree.Folder>
+                    </div>
+                  )
+                }
+              })}
+            </>
+          )
+        }
+      )}
+    </>
+  )
+}
+
 Tree.File = File;
 Tree.Folder = Folder;
+Tree.Root = Root;
 
 export default function FileTreeSidebar() {
+
+  const [Files, setFiles] = useState<any>({});
+  const [MarkdownFiles, setMarkdownFiles] = useState<string[]>([])
+
+  useEffect(() => {
+    try {
+      const fetchData = async () => {
+        await fetch('../../api/files')
+        .then(json => json.json())
+        .then(data => setFiles(data))
+        .catch(error => console.error('Error fetching files:', error));
+      }
+
+      fetchData()
+    } catch (e) {
+      console.error("Invalid JSON:", e)
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      setMarkdownFiles(readMarkdownFiles("/notes/"))
+
+      console.log(MarkdownFiles)
+    } catch (e) {
+      console.error("Error : ", e)
+    }
+  }, [])
+
   return (
-    <div>
-      <Tree>
-        <Tree.Folder name="src">
-          <Tree.Folder name="Components">
-            <Tree.File name="Modal.js" />
-            <Tree.File name="Modal.css" />
-          </Tree.Folder>
-          <Tree.File name="index.js" />
-          <Tree.File name="index.html" />
-        </Tree.Folder>
-        <Tree.File name="package.json" />
-      </Tree>
-    </div>
+    <>
+    <Tree>
+      <Tree.Root data={Files} />
+    </Tree>
+  </>
   );
 }

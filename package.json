@@ -26,6 +26,8 @@
     "@tailwindcss/forms": "^0.5.7",
     "@yelysei/react-files-drag-and-drop": "^1.0.0",
     "fs": "^0.0.1-security",
+    "mongodb": "^6.5.0",
+    "mongodb-client-encryption": "^6.0.0",
     "next": "14.1.4",
     "react": "^18",
     "react-complex-tree": "^2.3.7",

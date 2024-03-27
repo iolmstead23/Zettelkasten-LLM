@@ -1,8 +1,40 @@
 'use client'
 
 import Image from 'next/image'
+import { useState } from 'react';
 
-export default function Example() {
+export default function Profile() {
+
+  const [firstName, setFirstName] = useState<string>('')
+  const [lastName, setLastName] = useState<string>('')
+  const [email, setEmail] = useState<string>('')
+  const [userName, setUserName] = useState<string>('')
+
+  const handleSave = async (data: string[]) => {
+
+    try {
+      const response = await fetch('/api/db', { 
+        method: 'POST', 
+        headers: { 
+          'Content-Type': 'application/json', 
+        }, 
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) { 
+        alert('Data saved successfully!')
+      } else { 
+        alert('Something went wrong!');
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setFirstName('')
+      setLastName('')
+      setEmail('')
+      setUserName('')
+    }
+  }
 
   return (
     <>
@@ -48,6 +80,8 @@ export default function Example() {
                           type="text"
                           name="first-name"
                           id="first-name"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
                           autoComplete="given-name"
                           className="block w-full rounded-md border-0 bg-white/5 py-1.5  shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                         />
@@ -63,6 +97,8 @@ export default function Example() {
                           type="text"
                           name="last-name"
                           id="last-name"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
                           autoComplete="family-name"
                           className="block w-full rounded-md border-0 bg-white/5 py-1.5  shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                         />
@@ -76,6 +112,8 @@ export default function Example() {
                       <div className="mt-2">
                         <input
                           id="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                           name="email"
                           type="email"
                           autoComplete="email"
@@ -97,6 +135,8 @@ export default function Example() {
                             type="text"
                             name="username"
                             id="username"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
                             autoComplete="username"
                             className="flex-1 border-0 bg-transparent py-1.5 pl-1  focus:ring-0 sm:text-sm sm:leading-6"
                             placeholder="janesmith"
@@ -121,15 +161,19 @@ export default function Example() {
                         </select>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-8 flex">
-                    <button
-                      type="submit"
-                      className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold  shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                    >
-                      Save
-                    </button>
+                    <div className="mt-8 flex">
+                      <button
+                        onClick={()  => {
+                          handleSave([firstName,lastName,email,userName])
+                          alert("Submitting Data!")
+                        }}
+                        type="submit"
+                        className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                      >
+                        Save
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>
@@ -193,7 +237,7 @@ export default function Example() {
                   <div className="mt-8 flex">
                     <button
                       type="submit"
-                      className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold  shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                      className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
                     >
                       Save
                     </button>
@@ -231,7 +275,7 @@ export default function Example() {
                   <div className="mt-8 flex">
                     <button
                       type="submit"
-                      className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold  shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                      className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
                     >
                       Log out other sessions
                     </button>
@@ -251,7 +295,7 @@ export default function Example() {
                 <form className="flex items-start md:col-span-2">
                   <button
                     type="submit"
-                    className="rounded-md bg-red-500 px-3 py-2 text-sm font-semibold  shadow-sm hover:bg-red-400"
+                    className="rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-400"
                   >
                     Yes, delete my account
                   </button>

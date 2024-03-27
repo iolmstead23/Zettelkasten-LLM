@@ -1,15 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-        config.module.rules.push(
-          {
-            test: /\.md$/,
-            // This is the asset module.
-            type: 'asset/source',
-          }
-        )
-        return config
-      },
+  resolve: {
+    fallback: {
+      fs: false // This line is added to handle 'fs' module for browser
+    }
+  }
 }
 
 module.export = nextConfig;
