@@ -10,7 +10,7 @@ export default function Profile() {
   const [email, setEmail] = useState<string>('')
   const [userName, setUserName] = useState<string>('')
 
-  const handleSave = async (data: string[]) => {
+  const handleSave = async (data: Object) => {
 
     try {
       const response = await fetch('/api/db', { 
@@ -165,7 +165,12 @@ export default function Profile() {
                     <div className="mt-8 flex">
                       <button
                         onClick={()  => {
-                          handleSave([firstName,lastName,email,userName])
+                          handleSave({
+                            firstname:firstName,
+                            lastname:lastName,
+                            email:email,
+                            username:userName
+                          })
                           alert("Submitting Data!")
                         }}
                         type="submit"
