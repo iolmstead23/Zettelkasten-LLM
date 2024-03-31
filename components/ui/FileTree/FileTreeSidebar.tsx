@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import styledComponents from "styled-components"
 import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai"
 import { DiJavascript1, DiCss3Full, DiHtml5, DiReact, DiMarkdown } from "react-icons/di"
-import readMarkdownFiles from "@/lib/readMarkDownFiles"
+import readMarkdownFiles from "@/_lib/readMarkDownFiles"
 
 interface FILE_ICONS {
   js: React.JSX.Element;

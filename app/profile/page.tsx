@@ -1,9 +1,12 @@
 'use client'
 
+import { useUser } from '@auth0/nextjs-auth0/client';
 import Image from 'next/image'
 import { useState } from 'react';
 
 export default function Profile() {
+
+  const { user, error, isLoading } = useUser()
 
   const [firstName, setFirstName] = useState<string>('')
   const [lastName, setLastName] = useState<string>('')
@@ -28,11 +31,6 @@ export default function Profile() {
       }
     } catch (error) {
       console.log(error)
-    } finally {
-      setFirstName('')
-      setLastName('')
-      setEmail('')
-      setUserName('')
     }
   }
 
@@ -54,7 +52,7 @@ export default function Profile() {
                   <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
                     <div className="col-span-full flex items-center gap-x-8">
                       <Image
-                        src="/avatar.jpg"
+                        src={user?.picture ?? "/avatar.jpg"}
                         alt=""
                         className="h-24 w-24 flex-none rounded-lg bg-gray-800 object-cover"
                         width={100}
@@ -82,7 +80,7 @@ export default function Profile() {
                           id="first-name"
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
-                          autoComplete="given-name"
+                          autoComplete={user?.name ?? "given name"}
                           className="block w-full rounded-md border-0 bg-white/5 py-1.5  shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                         />
                       </div>
@@ -116,7 +114,7 @@ export default function Profile() {
                           onChange={(e) => setEmail(e.target.value)}
                           name="email"
                           type="email"
-                          autoComplete="email"
+                          autoComplete={user?.email ?? "email"}
                           className="block w-full rounded-md border-0 bg-white/5 py-1.5  shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                         />
                       </div>

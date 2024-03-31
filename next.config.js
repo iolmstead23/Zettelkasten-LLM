@@ -1,10 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  resolve: {
-    fallback: {
-      fs: false // This line is added to handle 'fs' module for browser
-    }
+  images: {
+    remotePatterns: [
+      {
+        hostname: 'lh3.googleusercontent.com'
+      },
+      {
+        hostname: 'avatars.githubusercontent.com'
+      }
+    ]
   }
 }
 
-module.export = nextConfig;
+module.exports = nextConfig;

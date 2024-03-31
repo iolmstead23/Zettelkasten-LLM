@@ -9,7 +9,7 @@ const file_name = "/notes/Business of IT.md"
 
 export default function Dashboard() {
 
-  const [data, setData] = useState('');
+  const [data, setData] = useState("");
 
   useEffect(() => {
     fetch(file_name)

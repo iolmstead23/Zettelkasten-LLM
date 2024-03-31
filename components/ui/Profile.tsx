@@ -26,7 +26,7 @@ export default function Profile() {
                     <span className="sr-only">Open user menu</span>
                     <Image
                         className="h-8 w-8 rounded-full bg-gray-50"
-                        src="/avatar.jpg"
+                        src={user?.picture ?? "/avatar.jpg"}
                         alt="Profile Avatar"
                         height={100}
                         width={100}
