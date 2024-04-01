@@ -2,7 +2,6 @@ import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { Menu, Transition } from '@headlessui/react'
 import { useUser } from '@auth0/nextjs-auth0/client'
 import { Fragment } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 
 function classNames(...classes:any) {
@@ -52,7 +51,7 @@ export default function Profile() {
                         <Menu.Item key={item.name}>
                             {({ active }) => (
                                 <>
-                                    <Link
+                                    <a
                                     href={item.href}
                                     className={classNames(
                                     active ? 'bg-gray-50' : '',
@@ -60,7 +59,7 @@ export default function Profile() {
                                     )}
                                     >
                                         {item.name}
-                                    </Link>
+                                    </a>
                                 </>
                             )}
                         </Menu.Item>

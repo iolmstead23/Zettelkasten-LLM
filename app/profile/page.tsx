@@ -1,8 +1,8 @@
 'use client'
 
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useUser } from '@auth0/nextjs-auth0/client'
 import Image from 'next/image'
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react'
 
 export default function Profile() {
 
@@ -12,11 +12,11 @@ export default function Profile() {
   const [lastName, setLastName] = useState<string>('')
   const [email, setEmail] = useState<string>('')
   const [userName, setUserName] = useState<string>('')
+  const [userID, setUserID] = useState<string>('')
 
   const handleSave = async (data: Object) => {
-
     try {
-      const response = await fetch('/api/db', { 
+      const response = await fetch('/api/db', {
         method: 'POST', 
         headers: { 
           'Content-Type': 'application/json', 
@@ -34,12 +34,35 @@ export default function Profile() {
     }
   }
 
+  const getUserID = async () => {
+    try {
+      const response = await fetch('/api/auth/me')
+
+      if (response.ok) { 
+        response.json()
+        .then((result)=>{
+          setUserID(result.sub)
+        })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  // assigns userID on each render if user exists
+  useEffect(()=>{
+    if (user) {
+      getUserID()
+    }
+  },[])
+
   return (
     <>
       <div className="xl:px-20">
         <main>
-            {/* Settings forms */}
-            <div className="divide-y divide-white/5">
+          {/* Settings forms */}
+          <div className="divide-y divide-white/5">
+            <Suspense>
               <div className="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
                 <div>
                   <h2 className="text-base font-semibold leading-7 ">Personal Information</h2>
@@ -80,7 +103,7 @@ export default function Profile() {
                           id="first-name"
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
-                          autoComplete={user?.name ?? "given name"}
+                          placeholder={user?.name ?? "given name"}
                           className="block w-full rounded-md border-0 bg-white/5 py-1.5  shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                         />
                       </div>
@@ -97,7 +120,7 @@ export default function Profile() {
                           id="last-name"
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
-                          autoComplete="family-name"
+                          placeholder="family-name"
                           className="block w-full rounded-md border-0 bg-white/5 py-1.5  shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                         />
                       </div>
@@ -114,7 +137,7 @@ export default function Profile() {
                           onChange={(e) => setEmail(e.target.value)}
                           name="email"
                           type="email"
-                          autoComplete={user?.email ?? "email"}
+                          placeholder={user?.email ?? "email"}
                           className="block w-full rounded-md border-0 bg-white/5 py-1.5  shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                         />
                       </div>
@@ -167,7 +190,7 @@ export default function Profile() {
                             firstname:firstName,
                             lastname:lastName,
                             email:email,
-                            username:userName
+                            username:userName,
                           })
                           alert("Submitting Data!")
                         }}
@@ -304,9 +327,10 @@ export default function Profile() {
                   </button>
                 </form>
               </div>
-            </div>
-          </main>
-        </div>
+            </Suspense>
+          </div>
+        </main>
+      </div>
     </>
   )
 }
