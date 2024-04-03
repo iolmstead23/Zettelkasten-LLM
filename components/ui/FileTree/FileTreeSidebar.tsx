@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import styledComponents from "styled-components"
 import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai"
 import { DiJavascript1, DiCss3Full, DiHtml5, DiReact, DiMarkdown } from "react-icons/di"
-import readMarkdownFiles from "@/_lib/readMarkDownFiles"
+import Files from "@/components/ui/Files";
 
 interface FILE_ICONS {
   js: React.JSX.Element;
@@ -92,31 +92,23 @@ const Tree = ({ children }: any) => {
 const Root = ({ data }: any) => {
   return (
     <>
-      {data && Object.values(data).map(
-        (items: any) => {
+      {data && data.map((item: any, index: number) => {
+        if (item.type=="file") {
           return (
-            <>
-              {items.map((item: any, index: number) => {
-                if (item.type=="file") {
-                  return (
-                    <div key={index}>
-                      <Tree.File name={item.name} />
-                    </div>
-                  )
-                } else if (item.type=="folder") {
-                  return (
-                    <div key={index}>
-                      <Tree.Folder name={item.name}>
-                        <Root data={item.content} />
-                      </Tree.Folder>
-                    </div>
-                  )
-                }
-              })}
-            </>
+            <div key={index}>
+              <Tree.File name={item.name} />
+            </div>
+          )
+        } else if (item.type=="folder") {
+          return (
+            <div key={index}>
+              <Tree.Folder name={item.name}>
+                <Root data={item.content} />
+              </Tree.Folder>
+            </div>
           )
         }
-      )}
+      })}
     </>
   )
 }
@@ -127,39 +119,37 @@ Tree.Root = Root;
 
 export default function FileTreeSidebar() {
 
-  const [Files, setFiles] = useState<any>({});
-  const [MarkdownFiles, setMarkdownFiles] = useState<string[]>([])
+  const [files, setFiles] = useState<any>("");
 
   useEffect(() => {
+
     try {
-      const fetchData = async () => {
-        await fetch('../../api/files')
-        .then(json => json.json())
-        .then(data => setFiles(data))
-        .catch(error => console.error('Error fetching files:', error));
+
+      const getData = async () => {
+        const response = await fetch("/api/db", { method: 'GET' })
+        
+        if (response.ok) {
+          return await response.json().then((result)=>{setFiles(JSON.parse(result))})
+        } else { return "Error" }
       }
 
-      fetchData()
+      // getUserID()
+      getData()
     } catch (e) {
       console.error("Invalid JSON:", e)
     }
   }, [])
-
-  useEffect(() => {
-    try {
-      setMarkdownFiles(readMarkdownFiles("/notes/"))
-
-      console.log(MarkdownFiles)
-    } catch (e) {
-      console.error("Error : ", e)
-    }
-  }, [])
-
-  return (
-    <>
-    <Tree>
-      <Tree.Root data={Files} />
-    </Tree>
-  </>
-  );
+  
+  if (files.length>0)  {
+    return (
+      <>
+      <Tree>
+        <Tree.Root data={files} />
+      </Tree>
+    </>
+    )
+  } else {
+    return <Files />
+  }
+  
 }

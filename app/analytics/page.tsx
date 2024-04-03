@@ -10,6 +10,7 @@ return classes.filter(Boolean).join(' ')
 }
 
 export default function Analytics() {
+
     return (
         <main className="lg:pl-20">
             <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
