@@ -2,7 +2,7 @@
 
 import { useUser } from '@auth0/nextjs-auth0/client'
 import Image from 'next/image'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 
 export default function Profile() {
 
@@ -12,7 +12,6 @@ export default function Profile() {
   const [lastName, setLastName] = useState<string>('')
   const [email, setEmail] = useState<string>('')
   const [userName, setUserName] = useState<string>('')
-  const [userID, setUserID] = useState<string>('')
 
   const handleSave = async (data: Object) => {
     try {
@@ -33,28 +32,6 @@ export default function Profile() {
       console.log(error)
     }
   }
-
-  const getUserID = async () => {
-    try {
-      const response = await fetch('/api/auth/me')
-
-      if (response.ok) { 
-        response.json()
-        .then((result)=>{
-          setUserID(result.sub)
-        })
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  // assigns userID on each render if user exists
-  useEffect(()=>{
-    if (user) {
-      getUserID()
-    }
-  },[])
 
   return (
     <>

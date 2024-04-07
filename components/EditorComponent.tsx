@@ -11,23 +11,29 @@ import {
   headingsPlugin,
   ListsToggle
 } from '@mdxeditor/editor'
-import {FC} from 'react'
+import {FC, useEffect, useRef} from 'react'
+import { useSelectedFileContext } from '@/components/ui/FileTree/FileTreeProvider'
 
 interface EditorProps {
   markdown: string
   editorRef?: React.MutableRefObject<MDXEditorMethods | null>
 }
 
-/**
- * Extend this Component further with the necessary plugins or props you need.
- * proxying the ref is necessary. Next.js dynamically imported components don't support refs. 
-*/
-const Editor: FC<EditorProps> = ({ markdown, editorRef }) => {
-  
+const Editor: FC<EditorProps> = ({ markdown }) => {
+  const selection = useSelectedFileContext();
+  const ref = useRef<MDXEditorMethods>(null)
+
+  // every time a new file is selected update the editors contents
+  // there will be logic applied to this from a FileManager that can handle saves and loads
+  useEffect(()=>{
+    ref?.current?.setMarkdown(selection.selectedFile[1])
+    console.log(selection.selectedFile[1])
+  },[...selection?.selectedFile])
+
   return (
     <pre>
       <MDXEditor
-        ref={editorRef}
+        ref={ref}
         markdown={markdown}
         plugins={[
           headingsPlugin(),

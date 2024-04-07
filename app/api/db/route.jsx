@@ -7,7 +7,7 @@ export async function GET() {
     const client = new MongoClient(process.env.MONGODB_URI, {})
     const headersList = headers()
     const userID = headersList.get('userid')
-
+    
     try {
         await client.connect()
         const db = client.db("userdata")

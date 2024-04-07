@@ -1,25 +1,12 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense } from 'react'
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar'
 
-const EditorComp = dynamic(() => import('@/components/EditorComponent'), { ssr: false })
-const file_name = "/notes/Business of IT.md"
+const EditorComp = dynamic(() => import('@/components/EditorComponent'), { ssr: false });
 
 export default function Dashboard() {
-
-  const [data, setData] = useState("");
-
-  useEffect(() => {
-    fetch(file_name)
-    .then((response) => {
-      return response.text();
-    })
-    .then((text) => {
-      setData(text);
-    });
-  }, []);
 
   return (
     <main className="xl:pl-96 max-h-full">
@@ -28,7 +15,7 @@ export default function Dashboard() {
         <div className="lg:pl-20">
           <Suspense fallback={<p className='text-center'>Loading...</p>}>
             <div className="flex overflow-y-auto flex-col max-h-screen">
-              <EditorComp markdown={data} />
+              <EditorComp markdown='Select a file!'/>
             </div>
           </Suspense>
 

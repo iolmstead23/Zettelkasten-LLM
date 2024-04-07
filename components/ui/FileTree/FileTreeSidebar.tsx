@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react"
+'use client'
+
+import React, { useState } from "react"
 import styledComponents from "styled-components"
 import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai"
 import { DiJavascript1, DiCss3Full, DiHtml5, DiReact, DiMarkdown } from "react-icons/di"
-import Files from "@/components/ui/Files";
+import { useFileTreeContext, useSelectedFileContext } from "@/components/ui/FileTree/FileTreeProvider";
+import EmptyFiles from "@/components/ui/Files"
 
 interface FILE_ICONS {
   js: React.JSX.Element;
@@ -54,14 +57,23 @@ const Collapsible: React.FC<CollapsableComponent> = styledComponents.div`
   overflow: hidden;
 `;
 
-const File = ({ name }: any) => {
+const File = ({ name, selection, contents }:{ name:string, selection:any, contents:string }) => {
+
   let ext = name.split(".")[1];
+  const handleSelection = () => { selection?.setSelectedFile([name,contents]); };
+
+  const isSelected: boolean = (selection?.selectedFile[0]==name) ? true : false;
 
   return (
     <StyledFile>
       {/* render the extension or fallback to generic file icon  */}
       {FILE_ICONS[ext] || <AiOutlineFile />}
-      <span>{name}</span>
+      <span
+        className={`${isSelected ? 'text-purple-500' : 'text-black'}`}
+        onClick={handleSelection}
+      >
+        {name}
+      </span>
     </StyledFile>
   );
 };
@@ -80,7 +92,9 @@ const Folder = ({ name, children }: any) => {
         <AiOutlineFolder />
         <span>{name}</span>
       </div>
-      <Collapsible isopen={isOpen}>{children}</Collapsible>
+      <Collapsible isopen={isOpen}>
+        {children}
+      </Collapsible>
     </StyledFolder>
   );
 };
@@ -89,21 +103,21 @@ const Tree = ({ children }: any) => {
   return <StyledTree>{children}</StyledTree>;
 };
 
-const Root = ({ data }: any) => {
+const Root = ({ data, selection }: any) => {
   return (
     <>
       {data && data.map((item: any, index: number) => {
         if (item.type=="file") {
           return (
             <div key={index}>
-              <Tree.File name={item.name} />
+              <Tree.File name={item.name} selection={selection} contents={item.text} />
             </div>
           )
         } else if (item.type=="folder") {
           return (
             <div key={index}>
               <Tree.Folder name={item.name}>
-                <Root data={item.content} />
+                <Root data={item.content} selection={selection} />
               </Tree.Folder>
             </div>
           )
@@ -119,37 +133,17 @@ Tree.Root = Root;
 
 export default function FileTreeSidebar() {
 
-  const [files, setFiles] = useState<any>("");
-
-  useEffect(() => {
-
-    try {
-
-      const getData = async () => {
-        const response = await fetch("/api/db", { method: 'GET' })
-        
-        if (response.ok) {
-          return await response.json().then((result)=>{setFiles(JSON.parse(result))})
-        } else { return "Error" }
-      }
-
-      // getUserID()
-      getData()
-    } catch (e) {
-      console.error("Invalid JSON:", e)
-    }
-  }, [])
+  const files = useFileTreeContext()
+  const selection = useSelectedFileContext()
   
-  if (files.length>0)  {
+  if (files)  {
     return (
-      <>
       <Tree>
-        <Tree.Root data={files} />
+        <Tree.Root data={files} selection={selection} />
       </Tree>
-    </>
     )
   } else {
-    return <Files />
+    return <EmptyFiles />
   }
   
 }
