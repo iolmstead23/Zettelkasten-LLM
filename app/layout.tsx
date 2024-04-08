@@ -4,6 +4,7 @@ import "@/app/globals.css";
 import Sidebars from "@/components/ui/Sidebars";
 import { UserProvider } from '@auth0/nextjs-auth0/client'
 import FileTreeProvider from "@/components/ui/FileTree/FileTreeProvider";
+import FileManagerProvider from "@/components/ui/FileTree/FileManagerProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,14 +20,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <UserProvider>
-        <FileTreeProvider>
-            <body className={`${inter.className} h-full`}>
-              <Sidebars />
-              {children}
-            </body>
-        </FileTreeProvider>
-      </UserProvider>
+      <body className={inter.className}>
+        <UserProvider>
+          <FileTreeProvider>
+            <FileManagerProvider>
+                <Sidebars />
+                {children}
+            </FileManagerProvider>
+          </FileTreeProvider>
+        </UserProvider>
+      </body>
     </html>
   );
 }

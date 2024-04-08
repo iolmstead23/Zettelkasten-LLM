@@ -9,7 +9,7 @@ const SelectedFileContext = createContext({selectedFile: [''], setSelectedFile: 
 const FileTreeProvider = ({ children }: any) => {
 
     const [files, setFiles] = useState<any>('');
-    const [selectedFile, setSelectedFile] = useState<any[]>(["",""]);
+    const [selectedFile, setSelectedFile] = useState<string[]>(["",""]);
     const { user } = useUser()
     
     // on user dependency change fetch files
