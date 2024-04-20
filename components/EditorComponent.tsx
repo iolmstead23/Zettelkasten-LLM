@@ -10,25 +10,24 @@ import {
   CreateLink,
   headingsPlugin,
   ListsToggle
-} from '@mdxeditor/editor'
-import {FC, useEffect, useRef} from 'react'
-import { useSelectedFileContext } from '@/components/ui/FileTree/FileTreeProvider'
+} from '@mdxeditor/editor';
+import {FC, useEffect, useRef} from 'react';
+import { useSelectedEditContext } from '@/components/ui/FileTree/FileTreeProvider';
 
 interface EditorProps {
-  markdown: string
-  editorRef?: React.MutableRefObject<MDXEditorMethods | null>
-}
+  markdown: string;
+  editorRef?: React.MutableRefObject<MDXEditorMethods | null>;
+};
 
 const Editor: FC<EditorProps> = ({ markdown }) => {
-  const selection = useSelectedFileContext();
+  const selection = useSelectedEditContext();
   const ref = useRef<MDXEditorMethods>(null)
 
   // every time a new file is selected update the editors contents
   // there will be logic applied to this from a FileManager that can handle saves and loads
   useEffect(()=>{
-    ref?.current?.setMarkdown(selection.selectedFile[1])
-    console.log(selection.selectedFile[1])
-  },[...selection?.selectedFile])
+    ref?.current?.setMarkdown(selection.selectedEdit[1])
+  },[...selection?.selectedEdit])
 
   return (
     <pre>
@@ -52,7 +51,8 @@ const Editor: FC<EditorProps> = ({ markdown }) => {
         ]}
       />
     </pre>
-  )
-}
+  );
+};
 
-export default Editor
+/** This is the editor component that allows for markdown editing */
+export default Editor;

@@ -8,28 +8,29 @@ import {
     HomeIcon,
     UsersIcon,
     Bars3Icon,
-} from '@heroicons/react/24/outline'
-import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, useState } from 'react'
-import { XMarkIcon } from '@heroicons/react/20/solid'
-import Profile from './Profile'
-import Link from 'next/link'
-import Image from 'next/image'
-import Search from '@/components/ui/Searchbar'
+} from '@heroicons/react/24/outline';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment, useState } from 'react';
+import { XMarkIcon } from '@heroicons/react/20/solid';
+import Profile from '@/components/ui//Profile';
+import Link from 'next/link';
+import Image from 'next/image';
+import Search from '@/components/ui/Searchbar';
 
 const navigation = [
     { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
-    { name: 'Team', href: '#', icon: UsersIcon, current: false },
-    { name: 'Projects', href: '#', icon: FolderIcon, current: false },
+    //{ name: 'Team', href: '#', icon: UsersIcon, current: false },
+    //{ name: 'Projects', href: '#', icon: FolderIcon, current: false },
     { name: 'Calendar', href: '/calender', icon: CalendarIcon, current: false },
-    { name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
+    //{ name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
     { name: 'Reports', href: '/analytics', icon: ChartPieIcon, current: false },
-]
+];
 
 function classNames(...classes:any) {
     return classes.filter(Boolean).join(' ')
-}
+};
 
+/** The sidebar is responsive and will hide on mobile */
 export default function Sidebars() {
 
     const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -161,5 +162,5 @@ export default function Sidebars() {
                 </div>
             </div>
         </>
-    )
-}
+    );
+};

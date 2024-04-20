@@ -1,5 +1,6 @@
 import React from "react";
 
+/** This is the placeholder for when there are no files */
 export default function EmptyFiles() {
 
     return (
@@ -26,4 +27,4 @@ export default function EmptyFiles() {
         </button>
       </>
     );
-  }
+  };

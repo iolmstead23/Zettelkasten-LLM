@@ -2,17 +2,18 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import Sidebars from "@/components/ui/Sidebars";
-import { UserProvider } from '@auth0/nextjs-auth0/client'
+import { UserProvider } from '@auth0/nextjs-auth0/client';
 import FileTreeProvider from "@/components/ui/FileTree/FileTreeProvider";
-import FileManagerProvider from "@/components/ui/FileTree/FileManagerProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
+/** Defines the metadata */
 export const metadata: Metadata = {
   title: "Zettelkasten LLM",
   description: "Created by Ian Olmstead",
 };
 
+/** Wrap the layout around the children */
 export default function RootLayout({
   children
 }: Readonly<{
@@ -23,13 +24,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <UserProvider>
           <FileTreeProvider>
-            <FileManagerProvider>
-                <Sidebars />
-                {children}
-            </FileManagerProvider>
+              <Sidebars />
+              {children}
           </FileTreeProvider>
         </UserProvider>
       </body>
     </html>
   );
-}
+};

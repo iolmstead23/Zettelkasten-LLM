@@ -4,6 +4,7 @@ import { useUser } from '@auth0/nextjs-auth0/client'
 import Image from 'next/image'
 import { Suspense, useState } from 'react'
 
+/** This is the page that allows profile information to be updated */
 export default function Profile() {
 
   const { user, error, isLoading } = useUser()

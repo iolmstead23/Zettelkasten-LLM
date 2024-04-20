@@ -87,6 +87,7 @@ function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ')
 }
 
+/** This is the calender component */
 export default function Calender() {
   return (
     <div className="lg:flex lg:h-full lg:flex-col xl:pl-[8em] max-h-full">

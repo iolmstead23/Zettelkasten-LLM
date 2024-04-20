@@ -1,15 +1,35 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
-import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar'
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
+import { useNewItemToggleContext, useRenameToggleContext } from '@/components/ui/FileTree/FileTreeProvider';
+import RenameFile from '@/components/ui/FileTree/RenameFileDialog';
+import NewItem from '@/components/ui/FileTree/NewItemDialog';
 
 const EditorComp = dynamic(() => import('@/components/EditorComponent'), { ssr: false });
 
+/** This is the main Dashboard component */
 export default function Dashboard() {
+
+  const renameToggle = useRenameToggleContext();
+  const newItemToggle = useNewItemToggleContext();
 
   return (
     <main className="xl:pl-96 max-h-full">
+
+      {(renameToggle.renameIsOpen===true) && (
+        <div>
+          <RenameFile />
+        </div>
+      )}
+
+      {(newItemToggle.newIsOpen===true) && (
+        <div>
+          <NewItem />
+        </div>
+      )}
+
       <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
         {/* Main area */}
         <div className="lg:pl-20">
@@ -31,4 +51,4 @@ export default function Dashboard() {
       </div>
     </main>
   )
-}
+};

@@ -1,5 +1,6 @@
 import { BellIcon } from "@heroicons/react/20/solid";
 
+/** This feature will allow the user to see if there have been any notifications */
 export default function NotificationBell() {
     return (
         <div className="flex items-center gap-x-4 lg:gap-x-6">
@@ -9,8 +10,7 @@ export default function NotificationBell() {
             </button>
 
             {/* Separator */}
-        <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" />
-
-    </div>
-    )
-}
+            <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" />
+        </div>
+    );
+};

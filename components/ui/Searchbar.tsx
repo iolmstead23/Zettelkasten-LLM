@@ -1,6 +1,7 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import NotificationBell from "@/components/ui/NotificationBell";
 
+/** This feature allows the user to search through their files */
 export default function Search() {
     return (
         <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
@@ -22,5 +23,5 @@ export default function Search() {
             </form>
             <NotificationBell />
         </div>
-    )
-}
+    );
+};

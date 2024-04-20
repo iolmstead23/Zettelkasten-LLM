@@ -1,21 +1,22 @@
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { Menu, Transition } from '@headlessui/react'
-import { useUser } from '@auth0/nextjs-auth0/client'
-import { Fragment } from 'react'
-import Image from 'next/image'
+import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import { Menu, Transition } from '@headlessui/react';
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { Fragment } from 'react';
+import Image from 'next/image';
 
 function classNames(...classes:any) {
-return classes.filter(Boolean).join(' ')
-}
+    return classes.filter(Boolean).join(' ');
+};
 
+/** This is the profile component that allows the user to access the profile page and login/logout feature */
 export default function Profile() {
 
-    const { user, error, isLoading } = useUser()
+    const { user } = useUser();
 
     const userNavigation = [
         { name: 'Your profile', href: '/profile', button: false },
         { name: user ? "Sign Out" : "Sign In", href: user ? '/api/auth/logout' : 'api/auth/login', button: true },
-    ]
+    ];
 
     return (
         <>
@@ -38,35 +39,35 @@ export default function Profile() {
                     </span>
                 </Menu.Button>
                 <Transition
-                as={Fragment}
-                enter="transition ease-out duration-100"
-                enterFrom="transform opacity-0 scale-95"
-                enterTo="transform opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="transform opacity-100 scale-100"
-                leaveTo="transform opacity-0 scale-95"
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
                 >
                     <Menu.Items className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
                         {userNavigation.map((item) => (
-                        <Menu.Item key={item.name}>
-                            {({ active }) => (
-                                <>
-                                    <a
-                                    href={item.href}
-                                    className={classNames(
-                                    active ? 'bg-gray-50' : '',
-                                    'block px-3 py-1 text-sm leading-6 text-gray-900'
-                                    )}
-                                    >
-                                        {item.name}
-                                    </a>
-                                </>
-                            )}
-                        </Menu.Item>
+                            <Menu.Item key={item.name}>
+                                {({ active }) => (
+                                    <>
+                                        <a
+                                            href={item.href}
+                                            className={classNames(
+                                            active ? 'bg-gray-50' : '',
+                                            'block px-3 py-1 text-sm leading-6 text-gray-900'
+                                            )}
+                                        >
+                                            {item.name}
+                                        </a>
+                                    </>
+                                )}
+                            </Menu.Item>
                         ))}
                     </Menu.Items>
                 </Transition>
             </Menu>
         </>
-    )
-}
+    );
+};

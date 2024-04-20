@@ -1,25 +1,29 @@
 'use client'
 
-import React, { useState } from "react"
-import styledComponents from "styled-components"
-import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai"
-import { DiJavascript1, DiCss3Full, DiHtml5, DiReact, DiMarkdown } from "react-icons/di"
-import { useFileTreeContext, useSelectedFileContext } from "@/components/ui/FileTree/FileTreeProvider";
-import EmptyFiles from "@/components/ui/Files"
-import { useFileManagerContext, useFilemanagerToggleContext } from "@/components/ui/FileTree/FileManagerProvider"
+// Import necessary hooks and components
+import React, { useState } from "react";
+import styledComponents from "styled-components";
+import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai";
+import { DiJavascript1, DiCss3Full, DiHtml5, DiReact, DiMarkdown } from "react-icons/di";
+import { useFileTreeContext, useSelectedItemContext, useNewItemToggleContext } from "@/components/ui/FileTree/FileTreeProvider";
+import EmptyFiles from "@/components/ui/Files";
+import FileDropdown from "@/components/ui/FileTree/FileDropdown";
+import FolderDropdown from "@/components/ui/FileTree/FolderDropdown";
 
+// Define types for file icons and collapsible component
 interface FILE_ICONS {
   js: React.JSX.Element;
   css: React.JSX.Element;
   html: React.JSX.Element;
   jsx: React.JSX.Element;
-}
+};
 
 interface CollapsableComponent {
   isopen: boolean | number;
   children: any;
-}
+};
 
+// File icons object
 const FILE_ICONS: Record<any, any> = {
   js: <DiJavascript1 />,
   css: <DiCss3Full />,
@@ -28,6 +32,7 @@ const FILE_ICONS: Record<any, any> = {
   md: <DiMarkdown />,
 };
 
+// Styled components for tree structure
 const StyledTree = styledComponents.div`
   line-height: 1.5;
 `;
@@ -52,19 +57,25 @@ const StyledFolder = styledComponents.div`
   }
 `;
 
+// Collapsible styled component
 const Collapsible: React.FC<CollapsableComponent> = styledComponents.div`
   height: ${(p: any)=> (p.isopen ? "0" : "auto")};
   overflow: hidden;
 `;
 
-const File = ({ name, selection, contents, filemanager }:{ name:string, selection:any, contents:string, filemanager:any }) => {
+// File component
+const File = ({ name, selection, contents }:{ name:string, selection:any, contents:string }) => {
 
+  // Extract file extension
   let ext = name.split(".")[1];
-  const fileManagerToggle = useFilemanagerToggleContext();
-  const handleSelection = () => { selection?.setSelectedFile([name,contents]); };
-  const [mouseHover,setMouseHover] = useState<boolean>(false);
-  const isSelected: boolean = (selection?.selectedFile[0]==name) ? true : false;
 
+  // Function to handle file selection
+  const handleSelection = () => { selection?.setSelectedItem([name,contents]); };
+
+  // Check if file is selected
+  const isSelected: boolean = (selection?.selectedItem[0]==name) ? true : false;
+
+  // Render file component
   return (
     <div
       onContextMenu={(e) => {
@@ -72,26 +83,20 @@ const File = ({ name, selection, contents, filemanager }:{ name:string, selectio
       }}
     >
       <StyledFile>
-        <div onMouseOver={()=>{setMouseHover(true)}} onMouseLeave={()=>{setMouseHover(false)}} className="flex items-center">
-          {/* render the extension or fallback to generic file icon  */}
+        <div className="flex items-center">
+          {/* Render file icon */}
           {FILE_ICONS[ext] || <AiOutlineFile />}
+          {/* Render file name */}
           <span
             className={`${isSelected ? 'text-purple-500' : 'text-black'}`}
             onClick={handleSelection}
           >
             {name}
           </span>
-          {mouseHover && (
-            <div className="pl-20"
-              onClick={() => {
-                // toggle filemanager open and closed
-                fileManagerToggle?.isOpen ?
-                  fileManagerToggle?.setIsOpen(false)
-                :
-                  fileManagerToggle?.setIsOpen(true);
-              }}
-            >
-              <img src="/plus-circle-svgrepo-com.svg" alt="new file" height={15} width={15} />
+          {/* Render file dropdown menu if selected */}
+          {isSelected && (
+            <div className="pl-20">
+              <FileDropdown/>
             </div>
             )}
         </div>
@@ -100,16 +105,17 @@ const File = ({ name, selection, contents, filemanager }:{ name:string, selectio
   );
 };
 
-const Folder = ({ name, children }: any) => {
+// Folder component
+const Folder = ({ name, selection, children }: any) => {
   const [isOpen, setIsOpen] = useState<boolean | number>(+false);
-  const [mouseHover,setMouseHover] = useState<boolean>(false);
-  const fileManagerToggle = useFilemanagerToggleContext();
 
-  const handleToggle = (e: any) => {
-    e.preventDefault();
-    setIsOpen(+!isOpen);
-  };
+  // Function to handle file selection
+  const handleSelection = () => { selection?.setSelectedItem([name]); };
 
+  // Check if file is selected
+  const isSelected: boolean = (selection?.selectedItem==name) ? true : false;
+
+  // Render folder component
   return (
     <div
       onContextMenu={(e) => {
@@ -117,26 +123,20 @@ const Folder = ({ name, children }: any) => {
       }}
     >
       <StyledFolder>
-        <div className="flex items-center" onMouseOver={()=>{setMouseHover(true)}} onMouseLeave={()=>{setMouseHover(false)}}>
-          <div className="folder--label" onClick={handleToggle}>
+        <div className="flex items-center">
+          {/* Render folder icon and name */}
+          <div className="folder--label" onClick={handleSelection}>
             <AiOutlineFolder />
             <span>{name}</span>
           </div>
-          {mouseHover && (
-            
-              <div className="pl-20"
-              onClick={() => {
-                  // toggle filemanager open and closed
-                  fileManagerToggle?.isOpen ?
-                    fileManagerToggle?.setIsOpen(false)
-                  :
-                    fileManagerToggle?.setIsOpen(true);
-                }}
-              >
-                <img src="/plus-circle-svgrepo-com.svg" alt="new file" height={15} width={15} />
+            {/* Render file dropdown menu if selected */}
+            {isSelected && (
+              <div className="pl-20 justify-end">
+                <FolderDropdown isOpen={isOpen} setIsOpen={setIsOpen} />
               </div>
             )}
-          </div>
+        </div>
+        {/* Render folder contents */}
         <Collapsible isopen={isOpen}>
           {children}
         </Collapsible>
@@ -145,26 +145,28 @@ const Folder = ({ name, children }: any) => {
   );
 };
 
+// Tree component
 const Tree = ({ children }: any) => {
   return <StyledTree>{children}</StyledTree>;
 };
 
-const Root = ({ data, selection, filemanager }: any) => {
+// Root component to render file tree
+const Root = ({ data, selection }: any) => {
 
   return (
     <div>
+      {/* Map over file tree data and render file or folder components */}
       {data && data.map((item: any, index: number) => {
-
         if (item.type=="file") {
           return (
             <div key={index}>
-              <Tree.File name={item.name} selection={selection} contents={item.text} filemanager={filemanager}/>
+              <Tree.File name={item.name} selection={selection} contents={item.text}/>
             </div>
           )
         } else if (item.type=="folder") {
           return (
             <div key={index}>
-              <Tree.Folder name={item.name}>
+              <Tree.Folder name={item.name} selection={selection}>
                 <Root data={item.content} selection={selection} />
               </Tree.Folder>
             </div>
@@ -173,26 +175,45 @@ const Root = ({ data, selection, filemanager }: any) => {
       })}
     </div>
   )
-}
+};
 
+// Attach components to Tree component
 Tree.File = File;
 Tree.Folder = Folder;
 Tree.Root = Root;
 
+//** This is the container that provides the FileTree logic */
 export default function FileTreeSidebar() {
 
-  const files = useFileTreeContext();
-  const selection = useSelectedFileContext();
-  const filemanager = useFileManagerContext();
+  // Get file tree context, selected file context, and file manager context
+  const files: any = useFileTreeContext();
+  const selection = useSelectedItemContext();
+  const newItemtoggle = useNewItemToggleContext();
 
+  // Render file tree sidebar
   return (
     <div>
+      {/* Render file tree if files exist */}
       {files && (
-        <Tree>
-          <Tree.Root data={files} selection={selection} filemanager={filemanager} />
-        </Tree>
+        <div>
+          <div className="pl-5 flex items-center"
+            onClick={()=>{
+              // deselect any item and open new item modal
+              selection?.setSelectedItem(["root",""]);
+              newItemtoggle?.setNewIsOpen(true);
+            }}>
+              Create New
+              <div className="pl-2">
+                <img src="/plus-circle-svgrepo-com.svg" alt="New Item" width={15} height={15} />
+              </div>
+          </div>
+          <Tree>
+            <Tree.Root data={files.state.files} selection={selection} />
+          </Tree>
+        </div>
       )}
 
+      {/* Render empty files component if no files exist */}
       {!files && (
         <div
           onContextMenu={(e) => {
@@ -203,5 +224,5 @@ export default function FileTreeSidebar() {
         </div>
       )}
     </div>
-  )
-}
+  );
+};

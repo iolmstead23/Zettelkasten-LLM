@@ -1,19 +1,21 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { useFileTreeContext, useRenameToggleContext, useSelectedItemContext, useSelectedEditContext } from '@/components/ui/FileTree/FileTreeProvider';
+import { useFileTreeContext, useNewItemToggleContext, useRenameToggleContext, useSelectedItemContext } from '@/components/ui/FileTree/FileTreeProvider';
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ')
 };
 
 /** This keeps track of the dropdown options that allow FileTree actions */
-export default function FileDropdown() {
+export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | number, setIsOpen: (e:boolean | number)=>void}) {
     
     const filetreeContext: any = useFileTreeContext();
-    const selectionContext = useSelectedItemContext();
-    const selectEditContext = useSelectedEditContext();
+    const selectionItemContext = useSelectedItemContext();
     const renameContext = useRenameToggleContext();
+    const newContext = useNewItemToggleContext();
+
+    // TODO: Enable folder renaming and deletion
 
     return (
         <Menu as="div" className="block">
@@ -43,12 +45,28 @@ export default function FileDropdown() {
                                         'block px-4 py-2 text-sm'
                                     )}
 
-                                    onClick={() => {selectEditContext?.setSelectedEdit(selectionContext?.selectedItem);}}
+                                    onClick={() => {setIsOpen(+!isOpen)}}
                                 >
-                                Edit
+                                {isOpen ? "Expand" : "Collapse"}
                                 </span>
                             )}
                         </Menu.Item>
+                        <Menu.Item>
+                            {({ active }) => (
+                                <span
+                                    className={classNames(
+                                        active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                        'block px-4 py-2 text-sm'
+                                    )}
+
+                                    onClick={() => {newContext.setNewIsOpen(true);}}
+                                >
+                                New
+                                </span>
+                            )}
+                        </Menu.Item>
+                        {/**
+                         * Enable this feature when folders can be renamed
                         <Menu.Item>
                             {({ active }) => (
                                 <span
@@ -63,6 +81,9 @@ export default function FileDropdown() {
                                 </span>
                             )}
                         </Menu.Item>
+                        */}
+                        {/**
+                         * Enable this feature when folders can be deleted
                         <Menu.Item>
                             {({ active }) => (
                                 <span
@@ -74,7 +95,7 @@ export default function FileDropdown() {
                                 onClick={() => {
                                     filetreeContext.dispatch({
                                     type:'delete_file',
-                                    payload:{name:selectionContext?.selectedItem[0]}
+                                    payload:{name:selectionItemContext.selectedItem[0]}
                                     })
                                 }}
                                 >
@@ -82,6 +103,7 @@ export default function FileDropdown() {
                                 </span>
                             )}
                         </Menu.Item>
+                        */}
                     </div>
                 </Menu.Items>
             </Transition>

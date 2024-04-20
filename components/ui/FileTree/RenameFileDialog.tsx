@@ -1,16 +1,41 @@
-import { Fragment, useRef, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-import { useFilemanagerToggleContext } from '@/components/ui/FileTree/FileManagerProvider'
+'use client'
 
-export default function FileManager() {
-  const FilemanagerToggleContext = useFilemanagerToggleContext();
+import { Fragment, useRef, useState } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { useFileTreeContext, useRenameToggleContext, useSelectedItemContext } from '@/components/ui/FileTree/FileTreeProvider';
 
-  const cancelButtonRef = useRef(null)
+/**
+ * This file is responsible for providing an interface to rename files
+*/
+export default function RenameFile() {
+
+  // TODO: Enable the renaming of folders as well as files
+
+  /** This enables us to toggle the rename modal open and close */
+  const renameToggleContext: any = useRenameToggleContext();
+
+  /** This enables the manager to read from the filetree */
+  const fileContext: any = useFileTreeContext();
+
+  /** This enables us to keep track of the selected file */
+  const selection = useSelectedItemContext();
+
+  /** This keeps track of the cancel button */
+  const cancelButtonRef = useRef(null);
+
+  /** newName and setNewName are used to keep track of the input's state */
+  const [newName, setNewName] = useState<string>('');
+
+  /** This updates the newName state whenever input has changed */
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {setNewName(event.target.value);};
+  
+  /** ext is the files extension */
+  let ext = selection?.selectedItem[0].split('.')[1];
 
   return (
-    <Transition.Root show={FilemanagerToggleContext?.isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => FilemanagerToggleContext?.setIsOpen(false)}>
+    <Transition.Root show={renameToggleContext?.renameIsOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => renameToggleContext?.setRenameIsOpen(false)}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -41,12 +66,22 @@ export default function FileManager() {
                   </div>
                   <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                     <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                      Test Modal
+                      Rename
                     </Dialog.Title>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        This is a test modal. This is where the filemanager options will go!
-                      </p>
+                        <div>
+                            <label htmlFor="rename" className="sr-only">
+                                Rename File Without Extension
+                            </label>
+                            <input
+                                type="text"
+                                name="rename"
+                                id="rename"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                placeholder={selection?.selectedItem[0].split('.')[0]}
+                                onChange={handleInputChange}
+                            />
+                        </div>
                     </div>
                   </div>
                 </div>
@@ -55,19 +90,21 @@ export default function FileManager() {
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                     onClick={() => {
-                      FilemanagerToggleContext?.setIsOpen(false);
-                    console.log("Test Successful!")
+                      fileContext.dispatch({
+                        type:'rename_file',
+                        payload:{currentName:selection.selectedItem[0], newName:newName+"."+ext}
+                      });
+                      renameToggleContext?.setRenameIsOpen(false);
                     }}
                   >
-                    Test Action
+                    Rename
                   </button>
 
                   <button
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     onClick={() => {
-                      FilemanagerToggleContext?.setIsOpen(false);
-                      console.log("Test Canceled!")
+                      renameToggleContext?.setRenameIsOpen(false);
                     }}
                     ref={cancelButtonRef}
                   >
@@ -80,5 +117,5 @@ export default function FileManager() {
         </div>
       </Dialog>
     </Transition.Root>
-  )
-}
+  );
+};
