@@ -31,6 +31,7 @@
     "@syncfusion/ej2-react-filemanager": "^25.1.35",
     "@tailwindcss/forms": "^0.5.7",
     "@yelysei/react-files-drag-and-drop": "^1.0.0",
+    "all": "^0.0.0",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
@@ -59,9 +60,7 @@
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
     "typedoc": "^0.25.13",
-    "typescript": "^5",
-    "@typescript-eslint/eslint-plugin": "~2.6.1",
-    "@typescript-eslint/parser": "~2.6.1"
+    "typescript": "^5"
   },
   "browser": {
     "fs": false,
