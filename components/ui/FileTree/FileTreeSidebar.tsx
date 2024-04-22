@@ -79,7 +79,7 @@ const File = ({ name, selection, contents }:{ name:string, selection:any, conten
   return (
     <div
       onContextMenu={(e) => {
-        e.preventDefault(); // prevent the default behaviour when right clicked
+        e.preventDefault(); // prevent the default behavior when right clicked
       }}
     >
       <StyledFile>
@@ -119,7 +119,7 @@ const Folder = ({ name, selection, children }: any) => {
   return (
     <div
       onContextMenu={(e) => {
-        e.preventDefault(); // prevent the default behaviour when right clicked
+        e.preventDefault(); // prevent the default behavior when right clicked
       }}
     >
       <StyledFolder>
@@ -188,30 +188,31 @@ export default function FileTreeSidebar() {
   // Get file tree context, selected file context, and file manager context
   const files: any = useFileTreeContext();
   const selection = useSelectedItemContext();
-  const newItemtoggle = useNewItemToggleContext();
+  const newItemToggle = useNewItemToggleContext();
 
   // Render file tree sidebar
   return (
     <div>
       {/* Render file tree if files exist */}
-      {files && (
-        <div>
-          <div className="pl-5 flex items-center"
-            onClick={()=>{
-              // deselect any item and open new item modal
-              selection?.setSelectedItem(["root",""]);
-              newItemtoggle?.setNewIsOpen(true);
-            }}>
-              Create New
-              <div className="pl-2">
-                <img src="/plus-circle-svgrepo-com.svg" alt="New Item" width={15} height={15} />
-              </div>
-          </div>
+      <div>
+        <div className="pl-5 flex items-center"
+          onClick={()=>{
+            // deselect any item and open new item modal
+            selection?.setSelectedItem(["root",""]);
+            newItemToggle?.setNewIsOpen(true);
+          }}>
+            Create New
+            <div className="pl-2">
+              <img src="/plus-circle-svgrepo-com.svg" alt="New Item" width={15} height={15} />
+            </div>
+        </div>
+        
+        {files && (
           <Tree>
             <Tree.Root data={files.state.files} selection={selection} />
           </Tree>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Render empty files component if no files exist */}
       {!files && (

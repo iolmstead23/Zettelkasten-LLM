@@ -31,7 +31,7 @@ export default function RenameFile() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {setNewName(event.target.value);};
   
   /** ext is the files extension */
-  let ext = selection?.selectedItem[0].split('.')[1];
+  let ext = selection.selectedItem[0].split('.')[1];
 
   return (
     <Transition.Root show={renameToggleContext?.renameIsOpen} as={Fragment}>
@@ -94,7 +94,7 @@ export default function RenameFile() {
                         type:'rename_file',
                         payload:{currentName:selection.selectedItem[0], newName:newName+"."+ext}
                       });
-                      renameToggleContext?.setRenameIsOpen(false);
+                      renameToggleContext.setRenameIsOpen(false);
                     }}
                   >
                     Rename
@@ -104,7 +104,7 @@ export default function RenameFile() {
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     onClick={() => {
-                      renameToggleContext?.setRenameIsOpen(false);
+                      renameToggleContext.setRenameIsOpen(false);
                     }}
                     ref={cancelButtonRef}
                   >

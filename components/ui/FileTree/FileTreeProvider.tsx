@@ -150,6 +150,18 @@ const FileTreeProvider = ({ children }: any) => {
                 // Return an error
                 console.error("Invalid JSON:", e);
             }
+        } else {
+            dispatch(
+                {type:"get_files",
+                payload:
+                    [{name:"New File123.md",type:"file",text:"This is dummy text."},
+                     {name:"New Folder123",type:"folder",content:[
+                        {name:"Hello World.md",type:"file",text:"This is more dummy text."},
+                        {name:"New File456.md",type:"file",text:"This is even more dummy text."}
+                     ]}
+                    ]
+                }
+            )
         }
     },[user]);
 

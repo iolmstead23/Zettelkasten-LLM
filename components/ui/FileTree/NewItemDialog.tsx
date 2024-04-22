@@ -41,7 +41,7 @@ export default function NewItem() {
 
   return (
     <Transition.Root show={newToggleContext?.newIsOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => newToggleContext?.setNewIsOpen(false)}>
+      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => newToggleContext.setNewIsOpen(false)}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -116,7 +116,7 @@ export default function NewItem() {
                             payload:{name:newName+"."+ext,type:"file",text:"This was a success!"},
                             location: selectionContext.selectedItem[0]
                           });
-                          newToggleContext?.setNewIsOpen(false);
+                          newToggleContext.setNewIsOpen(false);
                         }}
                       >
                         Create File
@@ -133,7 +133,7 @@ export default function NewItem() {
                             payload:{name:newName,type:"folder",contents:[{}]},
                             location: selectionContext.selectedItem[0]
                           });
-                          newToggleContext?.setNewIsOpen(false);
+                          newToggleContext.setNewIsOpen(false);
                         }}
                       >
                         Create Folder
@@ -144,7 +144,7 @@ export default function NewItem() {
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     onClick={() => {
-                      newToggleContext?.setNewIsOpen(false);
+                      newToggleContext.setNewIsOpen(false);
                     }}
                     ref={cancelButtonRef}
                   >

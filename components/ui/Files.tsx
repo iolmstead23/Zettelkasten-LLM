@@ -1,6 +1,6 @@
 import React from "react";
 
-/** This is the placeholder for when there are no files */
+/** This is the placeholder for when there are no files. This feature has been deprecated and replaced with dummy data */
 export default function EmptyFiles() {
 
     return (

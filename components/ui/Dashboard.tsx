@@ -42,7 +42,7 @@ export default function Dashboard() {
           <aside
             className="absolute bottom-0 left-20 top-16 hidden w-96 overflow-y-auto border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block"
             onContextMenu={(e) => {
-              e.preventDefault(); // prevent the default behaviour when right clicked
+              e.preventDefault(); // prevent the default behavior when right clicked
             }}
           >
             <FileTreeSidebar />
