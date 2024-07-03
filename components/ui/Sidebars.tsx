@@ -3,6 +3,7 @@
 import {
     CalendarIcon,
     ChartPieIcon,
+    ChartBarIcon,
     DocumentDuplicateIcon,
     FolderIcon,
     HomeIcon,
@@ -23,7 +24,9 @@ const navigation = [
     //{ name: 'Projects', href: '#', icon: FolderIcon, current: false },
     { name: 'Calendar', href: '/calender', icon: CalendarIcon, current: false },
     //{ name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
-    { name: 'Reports', href: '/analytics', icon: ChartPieIcon, current: false },
+    { name: 'Reports', href: '/analytics', icon: ChartBarIcon, current: false },
+    //{ name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
+    { name: 'Graph', href: '/knowledge-graph', icon: ChartPieIcon, current: false },
 ];
 
 function classNames(...classes:any) {
