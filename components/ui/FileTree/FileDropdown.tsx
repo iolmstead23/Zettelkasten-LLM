@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSelectedEditContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSelectedEditContext, useSortIndexContext, useNotifyToggleContext, useNotifyContentContext } from '@/components/ui/UIProvider';
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ')
@@ -13,6 +13,8 @@ export default function FileDropdown({id,data}:{id:number,data:string}) {
     const selectionIDContext = useSelectedIDContext();
     const selectEditContext = useSelectedEditContext();
     const renameContext = useRenameToggleContext();
+    const notifyToggle = useNotifyToggleContext();
+    const notifyContent = useNotifyContentContext();
     const sortIndex = useSortIndexContext();
 
     return (
@@ -44,8 +46,6 @@ export default function FileDropdown({id,data}:{id:number,data:string}) {
 
                                     onClick={() => {
                                         selectEditContext.setSelectedEditID([id,data]);
-                                        // console.log("ID " + id + " DATA " + data);
-                                        // console.log(selectEditContext.selectedEditID);
                                     }}
                                 >
                                 Edit
@@ -80,7 +80,11 @@ export default function FileDropdown({id,data}:{id:number,data:string}) {
                                     payload:{id:selectionIDContext.selectedID[0]}
                                     });
 
-                                    // resort the index
+                                    // notify user of successful save
+                                    notifyContent.setNotifyContent(["success","Delete success!"]);
+                                    notifyToggle.setNotifyToggle(true);
+
+                                    // resort the filetree
                                     sortIndex.setIndexSort(true);
                                 }}
                                 >

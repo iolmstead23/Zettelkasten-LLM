@@ -10,6 +10,8 @@ const SelectedEditIDContext = createContext({selectedEditID: [0,''], setSelected
 const RenameToggleContext = createContext({renameIsOpen: false, setRenameIsOpen: (e:boolean) => {e}});
 const NewItemToggleContext = createContext({newIsOpen: false, setNewIsOpen: (e:boolean) => {e}});
 const IndexSortContext = createContext({indexSort: false, setIndexSort: (e:boolean)=> {e}});
+const NotificationToggleContext = createContext({notifyToggle: false, setNotifyToggle: (e:boolean)=> {e}});
+const NotificationContentContext = createContext({notifyContent:['',''], setNotifyContent: (e:[string,string]) => {e}});
 
 interface State {
     files: any;
@@ -59,6 +61,7 @@ function reducer(state: State, action: Action): State {
         action.count = action.count ?? 0;
 
         const alphabetizeFiles = (files: any[]): any[] =>{
+            // create sorted list of items in current directory
             const sorted_dir = (files: any) => files.sort(function(a:any, b: any) {
                 return a.name.localeCompare(b.name);
             });
@@ -67,26 +70,38 @@ function reducer(state: State, action: Action): State {
             const sorted_root: any = sorted_dir(files);
 
             return sorted_root.map((item: any) => {
+                // dig through directory of item if folder
                 if (item.type == 'folder') {
                     return {...item, content: alphabetizeFiles(item.content)};
                 }
 
+                // return item if file
                 return item;
             })
         }
     
         // Function to sort files and update IDs
-        const sortFiles = (files: any[], action: Action): any[] => {
+        function sortFiles(files: any[], action: Action): any[] {
             return files.map((item: any) => {
                 if (item.type === 'file') {
                     action.count! += 1; // Increment count for files
 
                     // update editor of new id
-                    
+                    action.payload.editorID ?
+                        action.payload.editorID[0] == item.id ? (
+                            action.payload.setEditorID([action.count,action.payload.editorID[1]])
+                        ): 0: 0;
+
+                    // update selection of new id
+                    action.payload.selectID ?
+                        action.payload.selectID[0] == item.id ? (
+                            action.payload.setSelectID([action.count,action.payload.selectID[1]])
+                        ):0 :0;
+
                     const updatedFile = { ...item, id: action.count }; // Update file with new ID
                     return updatedFile;
                 } else if (item.type === 'folder') {
-                    const currentCount = action.count! + 1; // Store current count for folder ID
+                    const currentCount = action.count! + 1; // Store current count for folder ID (otherwise folder ID will increment with files)
                     action.count! += 1;
                     const sortedContent = sortFiles([...item.content], action); // Recursively sort folder contents
                     return {
@@ -94,19 +109,18 @@ function reducer(state: State, action: Action): State {
                         id: currentCount,
                         content: sortedContent
                     };
-                } else {
-                    return item; // Return unchanged if neither file nor folder
                 }
             });
         };
     
-        // Return new state with sorted files
+        // Return alphabetized files with sorted indexes
         return { files: sortFiles(alphabetizeFiles(state.files), action) };
     }    
 
     function delete_file(state: State, action: Action) {
         return state.files.map((item: any) => {
             if (item.type === "file") {
+                // delete file
                 return (item.id === action.payload.id) ? false : item;
             } else if (item.type === "folder") {
 
@@ -121,6 +135,8 @@ function reducer(state: State, action: Action): State {
                     };
                 }
             }
+
+            // return file as normal (not intended for deletion)
             return item;
         }).filter(Boolean);
     }
@@ -177,13 +193,11 @@ const UIProvider = ({ children }: any) => {
     const [renameIsOpen, setRenameIsOpen] = useState<boolean>(false);
     const [newIsOpen, setNewIsOpen] = useState<boolean>(false);
     const [indexSort, setIndexSort] = useState<boolean>(false);
+    const [notifyToggle, setNotifyToggle] = useState<boolean>(false);
+    const [notifyContent, setNotifyContent] = useState(['','']);
     const { user } = useUser();
 
-    const files: any = [
-        { id: 0, name: "New File123.md", type: "file", content: "This is dummy text." },
-        { id: 0, name: "New File Test.md", type: "file", content: "This is file dummy text." },
-      ]
-
+    // grabs data from database
     const getData = async () => {
         const response = await fetch("/api/db", { method: 'GET' });
         if (response.ok) {
@@ -199,28 +213,33 @@ const UIProvider = ({ children }: any) => {
     }
     
     useEffect(() => {
+        // grab data from database if user is logged in
         if (user) {
             getData().catch(e => console.error("Error fetching data:", e));
+        // grab dummy data if no user
         } else {
             dispatch({
                 type: "get_files",
                 selectID: 0,
                 payload: [
-                    { id: 0, name: "New File123.md", type: "file", content: "This is dummy text." },
-                    { id: 0, name: "New File Test.md", type: "file", content: "This is file dummy text." },
-                    { id: 0, name: "New Folder123", type: "folder", content: files },
-                    { id: 0, name: "This is a second branch", type: "folder", content: files },
-                    { id: 0, name: "New File456.md", type: "file", content: "This is dummy text." }
-                    ]
-                })
-            }
+                    { id: 0, name: "New File.md", type: "file", content: "This is dummy text." },
+                    { id: 0, name: "New Folder", type: "folder", content: [
+                        { id: 0, name: "New File 2.md", type: "file", content: "This is dummy text." },
+                    ]},
+                ]
+            })
+        }
 
         setIndexSort(true);
     }, [user])
     
+    // sort files alphabetically and then sorts index
     useEffect(() => {
         if (indexSort == true) {
-            dispatch({type: 'sort_index'});
+            dispatch({
+                type: 'sort_index',
+                payload:{EditorID:selectedEditID,setEditorID:setSelectedEditID,selectID:selectedID,setSelectID:setSelectedID}
+            });
             setIndexSort(false);
         }
     }, [indexSort]);
@@ -232,7 +251,11 @@ const UIProvider = ({ children }: any) => {
                     <RenameToggleContext.Provider value={{renameIsOpen, setRenameIsOpen}}>
                         <NewItemToggleContext.Provider value={{newIsOpen, setNewIsOpen}}>
                             <IndexSortContext.Provider value={{indexSort, setIndexSort}}>
-                                {children}
+                                <NotificationToggleContext.Provider value={{notifyToggle,setNotifyToggle}}>
+                                    <NotificationContentContext.Provider value={{notifyContent,setNotifyContent}}>
+                                        {children}
+                                    </NotificationContentContext.Provider>
+                                </NotificationToggleContext.Provider>
                             </IndexSortContext.Provider>
                         </NewItemToggleContext.Provider>
                     </RenameToggleContext.Provider>
@@ -248,5 +271,7 @@ export function useSelectedEditContext() { return useContext(SelectedEditIDConte
 export function useRenameToggleContext() { return useContext(RenameToggleContext) };
 export function useNewItemToggleContext() { return useContext(NewItemToggleContext) };
 export function useSortIndexContext() { return useContext(IndexSortContext) };
+export function useNotifyToggleContext() { return useContext(NotificationToggleContext) };
+export function useNotifyContentContext() { return useContext(NotificationContentContext)};
 
 export default UIProvider;

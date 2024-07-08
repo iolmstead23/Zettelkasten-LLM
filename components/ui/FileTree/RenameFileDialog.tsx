@@ -3,7 +3,7 @@
 import { Fragment, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useRenameToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
 /**
  * This file is responsible for providing an interface to rename files
@@ -32,6 +32,9 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
   
   /** ext is the files extension */
   const ext = name.split('.')[1];
+
+  const notifyToggle = useNotifyToggleContext();
+  const notifyContent = useNotifyContentContext();
 
   return (
     <Transition.Root show={renameToggleContext?.renameIsOpen} as={Fragment}>
@@ -95,6 +98,11 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
                         payload:{id:id, newName:newName+"."+ext}
                       });
 
+                      // notify user of successful save
+                      notifyContent.setNotifyContent(["success","Rename success!"]);
+                      notifyToggle.setNotifyToggle(true);
+
+                      // resort the filetree
                       sortIndex.setIndexSort(true);
                       renameToggleContext.setRenameIsOpen(false);
                     }}

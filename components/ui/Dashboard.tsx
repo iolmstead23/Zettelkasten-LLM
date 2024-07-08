@@ -3,9 +3,10 @@
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
-import { useFileTreeContext, useNewItemToggleContext, useRenameToggleContext, useSelectedEditContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useFileTreeContext, useNewItemToggleContext, useNotifyContentContext, useNotifyToggleContext, useRenameToggleContext, useSelectedEditContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
 import RenameFile from '@/components/ui/FileTree/RenameFileDialog';
 import NewItem from '@/components/ui/FileTree/NewItemDialog';
+import Notification from './Notification';
 
 const EditorComp = dynamic(() => import('@/components/EditorComponent'), { ssr: false });
 
@@ -16,6 +17,8 @@ export default function Dashboard() {
   const newItemToggle = useNewItemToggleContext();
   const selectedInfo = useSelectedIDContext();
   const selectedEditInfo = useSelectedEditContext();
+  const notifyToggle = useNotifyToggleContext();
+  const notifyContent = useNotifyContentContext();
   const sortIndex = useSortIndexContext();
 
   return (
@@ -30,6 +33,12 @@ export default function Dashboard() {
       {(newItemToggle.newIsOpen===true) && (
         <div>
           <NewItem />
+        </div>
+      )}
+
+      {(notifyToggle.notifyToggle==true) && (
+        <div>
+          <Notification />
         </div>
       )}
 
@@ -48,7 +57,11 @@ export default function Dashboard() {
                         content:selectedEditInfo.selectedEditID[1]
                       }
                     });
+                    // notify user of successful save
+                    notifyContent.setNotifyContent(["success","Save success!"]);
+                    notifyToggle.setNotifyToggle(true);
 
+                    // resort the filetree
                     sortIndex.setIndexSort(true);
                   }}>
                   Save

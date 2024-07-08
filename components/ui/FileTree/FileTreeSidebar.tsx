@@ -81,8 +81,6 @@ const File = ({ id, name, selection, content }:{ id:number, name:string, selecti
   // Check if file is selected
   const isSelected: boolean = (selection.selectedID[0]==id) ? true : false;
 
-  // console.log(content);
-
   // Render file component
   return (
     <div
@@ -99,7 +97,7 @@ const File = ({ id, name, selection, content }:{ id:number, name:string, selecti
             <span
               className={`${isSelected ? 'text-purple-500' : 'text-black'}`}
             >
-              {id + ": " + name}
+              {name}
             </span>
           </div>
           {/* Render file dropdown menu if selected */}
@@ -140,7 +138,7 @@ const Folder = ({ id, name, selection, children }: {id:number, name:string, sele
             <span
               className={`${isSelected ? 'text-purple-500' : 'text-black'}`}
             >
-            {id + ": " + name}
+            {name}
             </span>
           </div>
             {/* Render file dropdown menu if selected */}
@@ -168,7 +166,11 @@ const Tree = ({ children }: any) => {
 // Root component to render file tree
 const Root = ({ data, selection }: any) => {
   return (
-    <div>
+    <div
+      onContextMenu={(e) => {
+        e.preventDefault(); // prevent the default behavior when right clicked
+      }}
+    >
       {/* Map over file tree data and render file or folder components */}
       {data && data.map((item: any, index: number) => {
 
@@ -196,17 +198,13 @@ Tree.File = File;
 Tree.Folder = Folder;
 Tree.Root = Root;
 
-//** This is the container that provides the FileTree logic */
+/** This is the container that provides the FileTree logic */
 export default function FileTreeSidebar() {
 
-  // Get file tree context, selected file context, and file manager context
   const files: any = useFileTreeContext();
   const selection = useSelectedIDContext();
   const newItemToggle = useNewItemToggleContext();
 
-  // console.log(files.state.files)
-
-  // Render file tree sidebar
   return (
     <div>
       {/* Render file tree if files exist */}

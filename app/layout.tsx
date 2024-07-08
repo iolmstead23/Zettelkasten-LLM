@@ -24,8 +24,8 @@ export default function RootLayout({
       <body className={inter.className}>
         <UserProvider>
           <UIProvider>
-              <Sidebars />
-              {children}
+            <Sidebars />
+            {children}
           </UIProvider>
         </UserProvider>
       </body>

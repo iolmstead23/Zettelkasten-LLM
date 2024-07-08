@@ -42,6 +42,7 @@ const Editor: FC<EditorProps> = ({ markdown }) => {
       <MDXEditor
         ref={ref}
         markdown={markdown}
+        // update selection content as markdown
         onChange={(e: string) => selection.setSelectedEditID([selection.selectedEditID[0] as number, e])}
         plugins={[
           headingsPlugin(),
