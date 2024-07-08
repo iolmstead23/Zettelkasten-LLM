@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
-import { useNewItemToggleContext, useRenameToggleContext } from '@/components/ui/FileTree/FileTreeProvider';
+import { useNewItemToggleContext, useRenameToggleContext, useSelectedIDContext } from '@/components/ui/UIProvider';
 import RenameFile from '@/components/ui/FileTree/RenameFileDialog';
 import NewItem from '@/components/ui/FileTree/NewItemDialog';
 
@@ -14,13 +14,14 @@ export default function Dashboard() {
 
   const renameToggle = useRenameToggleContext();
   const newItemToggle = useNewItemToggleContext();
+  const selectedInfo = useSelectedIDContext();
 
   return (
     <main className="xl:pl-96 max-h-full">
 
       {(renameToggle.renameIsOpen===true) && (
         <div>
-          <RenameFile />
+          <RenameFile id={selectedInfo.selectedID[0] as number} name={selectedInfo.selectedID[1] as string} />
         </div>
       )}
 

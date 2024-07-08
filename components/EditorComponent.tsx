@@ -12,7 +12,7 @@ import {
   ListsToggle
 } from '@mdxeditor/editor';
 import {FC, useEffect, useRef} from 'react';
-import { useSelectedEditContext } from '@/components/ui/FileTree/FileTreeProvider';
+import { useSelectedEditContext } from '@/components/ui/UIProvider';
 
 interface EditorProps {
   markdown: string;
@@ -23,11 +23,14 @@ const Editor: FC<EditorProps> = ({ markdown }) => {
   const selection = useSelectedEditContext();
   const ref = useRef<MDXEditorMethods>(null)
 
-  // every time a new file is selected update the editors contents
+// every time a new file is selected update the editor's contents
   // there will be logic applied to this from a FileManager that can handle saves and loads
-  useEffect(()=>{
-    ref?.current?.setMarkdown(selection.selectedEdit[1])
-  },[...selection?.selectedEdit])
+  useEffect(() => {
+    const selectedMarkdown = selection?.selectedEditID[1];
+    if (typeof selectedMarkdown === 'string') {
+      ref?.current?.setMarkdown(selectedMarkdown);
+    }
+  }, [selection.selectedEditID[0]]);
 
   return (
     <pre>

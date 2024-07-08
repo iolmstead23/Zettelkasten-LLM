@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { useFileTreeContext, useNewItemToggleContext, useRenameToggleContext, useSelectedItemContext } from '@/components/ui/FileTree/FileTreeProvider';
+import { useFileTreeContext, useNewItemToggleContext, useRenameToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ')
@@ -11,9 +11,10 @@ function classNames(...classes: any) {
 export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | number, setIsOpen: (e:boolean | number)=>void}) {
     
     const filetreeContext: any = useFileTreeContext();
-    const selectionItemContext = useSelectedItemContext();
+    const selectionIDContext = useSelectedIDContext();
     const renameContext = useRenameToggleContext();
     const newContext = useNewItemToggleContext();
+    const sortIndex = useSortIndexContext();
 
     // TODO: Enable folder renaming and deletion
 
@@ -21,7 +22,6 @@ export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | nu
         <Menu as="div" className="block">
             <div>
                 <Menu.Button className="inline-flex w-full justify-center gap-x-1.5 bg-white text-xs font-semibold text-gray-900 hover:bg-gray-50">
-                    Options
                     <ChevronDownIcon className="-mr-1 h-5 w-5 text-gray-400" aria-hidden="true" />
                 </Menu.Button>
             </div>
@@ -45,7 +45,9 @@ export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | nu
                                         'block px-4 py-2 text-sm'
                                     )}
 
-                                    onClick={() => {setIsOpen(+!isOpen)}}
+                                    onClick={() => {
+                                        setIsOpen(+!isOpen);
+                                    }}
                                 >
                                 {isOpen ? "Expand" : "Collapse"}
                                 </span>
@@ -82,8 +84,7 @@ export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | nu
                             )}
                         </Menu.Item>
                         */}
-                        {/**
-                         * Enable this feature when folders can be deleted
+                        {
                         <Menu.Item>
                             {({ active }) => (
                                 <span
@@ -95,15 +96,18 @@ export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | nu
                                 onClick={() => {
                                     filetreeContext.dispatch({
                                     type:'delete_file',
-                                    payload:{name:selectionItemContext.selectedItem[0]}
-                                    })
+                                    payload:{id:selectionIDContext.selectedID[0], name:selectionIDContext.selectedID[1]}
+                                    });
+
+                                    // sort index with new tree
+                                    sortIndex.setIndexSort(true);
                                 }}
                                 >
                                 Delete
                                 </span>
                             )}
                         </Menu.Item>
-                        */}
+                        }
                     </div>
                 </Menu.Items>
             </Transition>

@@ -3,23 +3,23 @@
 import { Fragment, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useFileTreeContext, useRenameToggleContext, useSelectedItemContext } from '@/components/ui/FileTree/FileTreeProvider';
+import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
 /**
  * This file is responsible for providing an interface to rename files
 */
-export default function RenameFile() {
+const RenameFile = ({ name, id }: { name:string, id:number }) => {
 
   // TODO: Enable the renaming of folders as well as files
 
   /** This enables us to toggle the rename modal open and close */
   const renameToggleContext: any = useRenameToggleContext();
 
+  /** This enables us to intitiate an index sort */
+  const sortIndex = useSortIndexContext();
+
   /** This enables the manager to read from the filetree */
   const fileContext: any = useFileTreeContext();
-
-  /** This enables us to keep track of the selected file */
-  const selection = useSelectedItemContext();
 
   /** This keeps track of the cancel button */
   const cancelButtonRef = useRef(null);
@@ -31,7 +31,7 @@ export default function RenameFile() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {setNewName(event.target.value);};
   
   /** ext is the files extension */
-  let ext = selection.selectedItem[0].split('.')[1];
+  const ext = name.split('.')[1];
 
   return (
     <Transition.Root show={renameToggleContext?.renameIsOpen} as={Fragment}>
@@ -78,7 +78,7 @@ export default function RenameFile() {
                                 name="rename"
                                 id="rename"
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                placeholder={selection?.selectedItem[0].split('.')[0]}
+                                placeholder={name.split('.')[0]}
                                 onChange={handleInputChange}
                             />
                         </div>
@@ -92,8 +92,10 @@ export default function RenameFile() {
                     onClick={() => {
                       fileContext.dispatch({
                         type:'rename_file',
-                        payload:{currentName:selection.selectedItem[0], newName:newName+"."+ext}
+                        payload:{id:id, newName:newName+"."+ext}
                       });
+
+                      sortIndex.setIndexSort(true);
                       renameToggleContext.setRenameIsOpen(false);
                     }}
                   >
@@ -119,3 +121,5 @@ export default function RenameFile() {
     </Transition.Root>
   );
 };
+
+export default RenameFile;

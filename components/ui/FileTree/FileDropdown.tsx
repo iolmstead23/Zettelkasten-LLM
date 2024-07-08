@@ -1,25 +1,24 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { useFileTreeContext, useRenameToggleContext, useSelectedItemContext, useSelectedEditContext } from '@/components/ui/FileTree/FileTreeProvider';
+import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSelectedEditContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ')
 };
 
 /** This keeps track of the dropdown options that allow FileTree actions */
-export default function FileDropdown() {
-    
+export default function FileDropdown({id,name,data}:{id:number,name:string,data:string}) {
     const filetreeContext: any = useFileTreeContext();
-    const selectionContext = useSelectedItemContext();
+    const selectionIDContext = useSelectedIDContext();
     const selectEditContext = useSelectedEditContext();
     const renameContext = useRenameToggleContext();
+    const sortIndex = useSortIndexContext();
 
     return (
         <Menu as="div" className="block">
             <div>
                 <Menu.Button className="inline-flex w-full justify-center gap-x-1.5 bg-white text-xs font-semibold text-gray-900 hover:bg-gray-50">
-                    Options
                     <ChevronDownIcon className="-mr-1 h-5 w-5 text-gray-400" aria-hidden="true" />
                 </Menu.Button>
             </div>
@@ -43,7 +42,15 @@ export default function FileDropdown() {
                                         'block px-4 py-2 text-sm'
                                     )}
 
-                                    onClick={() => {selectEditContext?.setSelectedEdit(selectionContext?.selectedItem);}}
+                                    onClick={() => {
+                                        selectEditContext?.setSelectedEditID([
+                                            // set index to current selected ID
+                                            id,
+
+                                            // set markdown to selected text
+                                            data
+                                        ]);
+                                    }}
                                 >
                                 Edit
                                 </span>
@@ -74,8 +81,11 @@ export default function FileDropdown() {
                                 onClick={() => {
                                     filetreeContext.dispatch({
                                     type:'delete_file',
-                                    payload:{name:selectionContext?.selectedItem[0]}
-                                    })
+                                    payload:{id:selectionIDContext.selectedID[0]}
+                                    });
+
+                                    // resort the index
+                                    sortIndex.setIndexSort(true);
                                 }}
                                 >
                                 Delete

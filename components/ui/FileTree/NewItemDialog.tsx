@@ -3,7 +3,7 @@
 import { Fragment, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useFileTreeContext, useNewItemToggleContext, useSelectedItemContext } from '@/components/ui/FileTree/FileTreeProvider';
+import { useFileTreeContext, useNewItemToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
 /**
  * This file is responsible for providing an interface to create new items
@@ -18,8 +18,11 @@ export default function NewItem() {
   /** This enables the manager to read from the filetree */
   const fileContext: any = useFileTreeContext();
 
+  /** This enables us to sort the index */
+  const sortIndex = useSortIndexContext();
+
   /** This enables the manager to read and write selection */
-  const selectionContext = useSelectedItemContext();
+  const selectionIDContext = useSelectedIDContext();
 
   /** This keeps track of the cancel button */
   const cancelButtonRef = useRef(null);
@@ -31,13 +34,10 @@ export default function NewItem() {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {setNewName(event.target.value);};
 
   /** This toggles the newType state between folder and file */
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {setNewType(event.target.value)};
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {setNewType(event.target.value);};
 
   /** newType and setNewType are used to toggle the selection of Folder or File */
   const [newType, setNewType] = useState<string>("File");
-  
-  /** ext is the files extension */
-  let ext = "md"
 
   return (
     <Transition.Root show={newToggleContext?.newIsOpen} as={Fragment}>
@@ -111,11 +111,16 @@ export default function NewItem() {
                         type="button"
                         className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                         onClick={() => {
+                          // this inserts a new file in the folder it is located in
                           fileContext.dispatch({
                             type:'insert_file',
-                            payload:{name:newName+"."+ext,type:"file",text:"This was a success!"},
-                            location: selectionContext.selectedItem[0]
+                            selectID: selectionIDContext.selectedID[0],
+                            payload:{id:1000,name:newName+".md",type:"file",content:"This was a success!"},
                           });
+
+                          // sort index with new file
+                          sortIndex.setIndexSort(true);
+
                           newToggleContext.setNewIsOpen(false);
                         }}
                       >
@@ -128,11 +133,16 @@ export default function NewItem() {
                         type="button"
                         className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                         onClick={() => {
+                          // this inserts a new folder in the folder it is located in
                           fileContext.dispatch({
                             type:'insert_file',
-                            payload:{name:newName,type:"folder",contents:[{}]},
-                            location: selectionContext.selectedItem[0]
+                            selectID:selectionIDContext.selectedID[0],
+                            payload:{id:0,name:newName,type:"folder",content:[]},
                           });
+
+                          // sort index with new folder
+                          sortIndex.setIndexSort(true);
+
                           newToggleContext.setNewIsOpen(false);
                         }}
                       >

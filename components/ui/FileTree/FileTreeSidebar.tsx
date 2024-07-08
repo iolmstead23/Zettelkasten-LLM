@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import styledComponents from "styled-components";
 import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai";
 import { DiJavascript1, DiCss3Full, DiHtml5, DiReact, DiMarkdown } from "react-icons/di";
-import { useFileTreeContext, useSelectedItemContext, useNewItemToggleContext } from "@/components/ui/FileTree/FileTreeProvider";
+import { useFileTreeContext, useSelectedIDContext, useNewItemToggleContext } from "@/components/ui/UIProvider";
 import EmptyFiles from "@/components/ui/Files";
 import FileDropdown from "@/components/ui/FileTree/FileDropdown";
 import FolderDropdown from "@/components/ui/FileTree/FolderDropdown";
@@ -22,6 +22,12 @@ interface CollapsableComponent {
   isopen: boolean | number;
   children: any;
 };
+
+interface RootValues {
+  id:number;
+  name:string;
+  content:string;
+}
 
 // File icons object
 const FILE_ICONS: Record<any, any> = {
@@ -64,16 +70,16 @@ const Collapsible: React.FC<CollapsableComponent> = styledComponents.div`
 `;
 
 // File component
-const File = ({ name, selection, contents }:{ name:string, selection:any, contents:string }) => {
+const File = ({ id, name, selection, contents }:{ id:number, name:string, selection:any, contents:string }) => {
 
   // Extract file extension
-  let ext = name.split(".")[1];
+  const ext = name.split(".")[1];
 
   // Function to handle file selection
-  const handleSelection = () => { selection?.setSelectedItem([name,contents]); };
+  const handleSelection = () => { selection.setSelectedID([id,name]); };
 
   // Check if file is selected
-  const isSelected: boolean = (selection?.selectedItem[0]==name) ? true : false;
+  const isSelected: boolean = (selection.selectedID[0]==id) ? true : false;
 
   // Render file component
   return (
@@ -87,16 +93,18 @@ const File = ({ name, selection, contents }:{ name:string, selection:any, conten
           {/* Render file icon */}
           {FILE_ICONS[ext] || <AiOutlineFile />}
           {/* Render file name */}
-          <span
-            className={`${isSelected ? 'text-purple-500' : 'text-black'}`}
-            onClick={handleSelection}
-          >
-            {name}
-          </span>
+          <div onClick={handleSelection}>
+            <span
+              className={`${isSelected ? 'text-purple-500' : 'text-black'}`}
+            >
+              {id + ": " + name}
+            </span>
+          </div>
           {/* Render file dropdown menu if selected */}
           {isSelected && (
-            <div className="pl-20">
-              <FileDropdown/>
+            // this keeps track of how far left the dropdown is from the item
+            <div className="ml-10">
+              <FileDropdown id={id} name={name} data={contents} />
             </div>
             )}
         </div>
@@ -106,14 +114,14 @@ const File = ({ name, selection, contents }:{ name:string, selection:any, conten
 };
 
 // Folder component
-const Folder = ({ name, selection, children }: any) => {
+const Folder = ({ id, name, selection, children }: {id:number, name:string, selection:any, children:any}) => {
   const [isOpen, setIsOpen] = useState<boolean | number>(+false);
 
   // Function to handle file selection
-  const handleSelection = () => { selection?.setSelectedItem([name]); };
+  const handleSelection = () => { selection.setSelectedID([id,name]); };
 
-  // Check if file is selected
-  const isSelected: boolean = (selection?.selectedItem==name) ? true : false;
+  // Check if folder is selected
+  const isSelected: boolean = (selection.selectedID[0]==id) ? true : false;
 
   // Render folder component
   return (
@@ -127,11 +135,16 @@ const Folder = ({ name, selection, children }: any) => {
           {/* Render folder icon and name */}
           <div className="folder--label" onClick={handleSelection}>
             <AiOutlineFolder />
-            <span>{name}</span>
+            <span
+              className={`${isSelected ? 'text-purple-500' : 'text-black'}`}
+            >
+            {id + ": " + name}
+            </span>
           </div>
             {/* Render file dropdown menu if selected */}
             {isSelected && (
-              <div className="pl-20 justify-end">
+              // this keeps track of how far left the dropdown is from the item
+              <div className="ml-10">
                 <FolderDropdown isOpen={isOpen} setIsOpen={setIsOpen} />
               </div>
             )}
@@ -152,29 +165,28 @@ const Tree = ({ children }: any) => {
 
 // Root component to render file tree
 const Root = ({ data, selection }: any) => {
-
   return (
     <div>
       {/* Map over file tree data and render file or folder components */}
       {data && data.map((item: any, index: number) => {
-        if (item.type=="file") {
+
+        const {id,name,content}: RootValues = item
+
+        if (item.type === "file") {
           return (
-            <div key={index}>
-              <Tree.File name={item.name} selection={selection} contents={item.text}/>
-            </div>
-          )
-        } else if (item.type=="folder") {
+            <Tree.File key={index} id={id} name={name} selection={selection} contents={content} />
+          );
+        } else if (item.type === "folder") {
           return (
-            <div key={index}>
-              <Tree.Folder name={item.name} selection={selection}>
-                <Root data={item.content} selection={selection} />
-              </Tree.Folder>
-            </div>
-          )
+            <Tree.Folder key={index} id={id} name={name} selection={selection}>
+              <Root data={content} selection={selection} />
+            </Tree.Folder>
+          );
         }
+        return null;
       })}
     </div>
-  )
+  );
 };
 
 // Attach components to Tree component
@@ -187,7 +199,7 @@ export default function FileTreeSidebar() {
 
   // Get file tree context, selected file context, and file manager context
   const files: any = useFileTreeContext();
-  const selection = useSelectedItemContext();
+  const selection = useSelectedIDContext();
   const newItemToggle = useNewItemToggleContext();
 
   // Render file tree sidebar
@@ -198,7 +210,7 @@ export default function FileTreeSidebar() {
         <div className="pl-5 flex items-center"
           onClick={()=>{
             // deselect any item and open new item modal
-            selection?.setSelectedItem(["root",""]);
+            selection?.setSelectedID([0,'']);
             newItemToggle?.setNewIsOpen(true);
           }}>
             Create New

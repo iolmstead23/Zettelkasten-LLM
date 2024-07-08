@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import Sidebars from "@/components/ui/Sidebars";
 import { UserProvider } from '@auth0/nextjs-auth0/client';
-import FileTreeProvider from "@/components/ui/FileTree/FileTreeProvider";
+import UIProvider from '@/components/ui/UIProvider';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,10 +23,10 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className={inter.className}>
         <UserProvider>
-          <FileTreeProvider>
+          <UIProvider>
               <Sidebars />
               {children}
-          </FileTreeProvider>
+          </UIProvider>
         </UserProvider>
       </body>
     </html>
