@@ -29,10 +29,10 @@ function reducer(state: State, action: Action): State {
         return (state.files).map((item: any) => {
             if (item.type === "file") {
                 if (item.id === action.payload.id) {
-                    return {id: item.id, type: "file", name: action.payload.newName, content: item.text};
+                    return {...item, name: action.payload.newName};
                 }
             } else if (item.type === "folder") {
-                return {type: "folder", name: item.name, content: rename_file({files: item.content}, action)};
+                return {...item, content: rename_file({files: item.content}, action)};
             }
             return item;
         });
