@@ -8,7 +8,7 @@ function classNames(...classes: any) {
 };
 
 /** This keeps track of the dropdown options that allow FileTree actions */
-export default function FileDropdown({id,name,data}:{id:number,name:string,data:string}) {
+export default function FileDropdown({id,data}:{id:number,data:string}) {
     const filetreeContext: any = useFileTreeContext();
     const selectionIDContext = useSelectedIDContext();
     const selectEditContext = useSelectedEditContext();
@@ -43,13 +43,9 @@ export default function FileDropdown({id,name,data}:{id:number,name:string,data:
                                     )}
 
                                     onClick={() => {
-                                        selectEditContext?.setSelectedEditID([
-                                            // set index to current selected ID
-                                            id,
-
-                                            // set markdown to selected text
-                                            data
-                                        ]);
+                                        selectEditContext.setSelectedEditID([id,data]);
+                                        // console.log("ID " + id + " DATA " + data);
+                                        // console.log(selectEditContext.selectedEditID);
                                     }}
                                 >
                                 Edit

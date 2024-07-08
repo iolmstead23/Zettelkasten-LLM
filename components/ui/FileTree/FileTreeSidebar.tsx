@@ -70,7 +70,7 @@ const Collapsible: React.FC<CollapsableComponent> = styledComponents.div`
 `;
 
 // File component
-const File = ({ id, name, selection, contents }:{ id:number, name:string, selection:any, contents:string }) => {
+const File = ({ id, name, selection, content }:{ id:number, name:string, selection:any, content:string }) => {
 
   // Extract file extension
   const ext = name.split(".")[1];
@@ -80,6 +80,8 @@ const File = ({ id, name, selection, contents }:{ id:number, name:string, select
 
   // Check if file is selected
   const isSelected: boolean = (selection.selectedID[0]==id) ? true : false;
+
+  // console.log(content);
 
   // Render file component
   return (
@@ -104,7 +106,7 @@ const File = ({ id, name, selection, contents }:{ id:number, name:string, select
           {isSelected && (
             // this keeps track of how far left the dropdown is from the item
             <div className="ml-10">
-              <FileDropdown id={id} name={name} data={contents} />
+              <FileDropdown id={id} data={content} />
             </div>
             )}
         </div>
@@ -170,11 +172,11 @@ const Root = ({ data, selection }: any) => {
       {/* Map over file tree data and render file or folder components */}
       {data && data.map((item: any, index: number) => {
 
-        const {id,name,content}: RootValues = item
+        const {id,name,content}: RootValues = item;
 
         if (item.type === "file") {
           return (
-            <Tree.File key={index} id={id} name={name} selection={selection} contents={content} />
+            <Tree.File key={index} id={id} name={name} selection={selection} content={content} />
           );
         } else if (item.type === "folder") {
           return (
@@ -201,6 +203,8 @@ export default function FileTreeSidebar() {
   const files: any = useFileTreeContext();
   const selection = useSelectedIDContext();
   const newItemToggle = useNewItemToggleContext();
+
+  // console.log(files.state.files)
 
   // Render file tree sidebar
   return (

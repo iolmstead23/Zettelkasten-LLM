@@ -17,7 +17,7 @@ interface State {
 };
 
 interface Action {
-    type: 'get_files' | 'insert_file' | 'rename_file' | 'delete_file' | 'sort_index';
+    type: 'get_files' | 'insert_file' | 'rename_file' | 'delete_file' | 'sort_index' | 'save_file';
     selectID?: number;
     payload?: any;
     count?: number;
@@ -38,15 +38,51 @@ function reducer(state: State, action: Action): State {
         });
     }
 
+    function save_file(state: State, action: Action) {
+        return (state.files).map((item: any) => {
+            if (item.type === "file") {
+                if (item.id === action.payload.id) {
+                    return {id: item.id, type: "file", name: item.name, content: action.payload.content};
+                }
+            } else if (item.type === "folder") {
+                return {type: "folder", name: item.name, content: save_file({files: item.content}, action)};
+            }
+            return item;
+        });
+    }
+
     function sort_index(state: State, action: Action): State {
         // Initialize count with the action count or 0
         action.count = action.count ?? 0;
+
+        // Initialize count with the action count or 0
+        action.count = action.count ?? 0;
+
+        const alphabetizeFiles = (files: any[]): any[] =>{
+            const sorted_dir = (files: any) => files.sort(function(a:any, b: any) {
+                return a.name.localeCompare(b.name);
+            });
+
+            // sort the current directory
+            const sorted_root: any = sorted_dir(files);
+
+            return sorted_root.map((item: any) => {
+                if (item.type == 'folder') {
+                    return {...item, content: alphabetizeFiles(item.content)};
+                }
+
+                return item;
+            })
+        }
     
         // Function to sort files and update IDs
         const sortFiles = (files: any[], action: Action): any[] => {
             return files.map((item: any) => {
                 if (item.type === 'file') {
                     action.count! += 1; // Increment count for files
+
+                    // update editor of new id
+                    
                     const updatedFile = { ...item, id: action.count }; // Update file with new ID
                     return updatedFile;
                 } else if (item.type === 'folder') {
@@ -65,7 +101,7 @@ function reducer(state: State, action: Action): State {
         };
     
         // Return new state with sorted files
-        return { files: sortFiles(state.files, action) };
+        return { files: sortFiles(alphabetizeFiles(state.files), action) };
     }    
 
     function delete_file(state: State, action: Action) {
@@ -121,6 +157,8 @@ function reducer(state: State, action: Action): State {
             return state;
         case 'get_files':
             return {files: action.payload};
+        case 'save_file':
+            return {files: save_file(state, action)};
         case 'insert_file':
             return {files: create_file(state, action)};
         case 'rename_file':

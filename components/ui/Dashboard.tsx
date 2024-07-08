@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
-import { useNewItemToggleContext, useRenameToggleContext, useSelectedIDContext } from '@/components/ui/UIProvider';
+import { useFileTreeContext, useNewItemToggleContext, useRenameToggleContext, useSelectedEditContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
 import RenameFile from '@/components/ui/FileTree/RenameFileDialog';
 import NewItem from '@/components/ui/FileTree/NewItemDialog';
 
@@ -11,10 +11,12 @@ const EditorComp = dynamic(() => import('@/components/EditorComponent'), { ssr: 
 
 /** This is the main Dashboard component */
 export default function Dashboard() {
-
+  const filetreeContext: any = useFileTreeContext();
   const renameToggle = useRenameToggleContext();
   const newItemToggle = useNewItemToggleContext();
   const selectedInfo = useSelectedIDContext();
+  const selectedEditInfo = useSelectedEditContext();
+  const sortIndex = useSortIndexContext();
 
   return (
     <main className="xl:pl-96 max-h-full">
@@ -36,6 +38,22 @@ export default function Dashboard() {
         <div className="lg:pl-20">
           <Suspense fallback={<p className='text-center'>Loading...</p>}>
             <div className="flex overflow-y-auto flex-col max-h-screen">
+              <div className='m-2'>
+                <button
+                  onClick={()=>{
+                    selectedEditInfo.selectedEditID[0] != 0 && filetreeContext.dispatch({
+                      type:'save_file',
+                      payload:{
+                        id:selectedEditInfo.selectedEditID[0],
+                        content:selectedEditInfo.selectedEditID[1]
+                      }
+                    });
+
+                    sortIndex.setIndexSort(true);
+                  }}>
+                  Save
+                </button>
+              </div>
               <EditorComp markdown='Select a file!'/>
             </div>
           </Suspense>

@@ -115,7 +115,7 @@ export default function NewItem() {
                           fileContext.dispatch({
                             type:'insert_file',
                             selectID: selectionIDContext.selectedID[0],
-                            payload:{id:1000,name:newName+".md",type:"file",content:"This was a success!"},
+                            payload:{id:1000,name:newName+".md",type:"file",content:"Enter Text Here"},
                           });
 
                           // sort index with new file
