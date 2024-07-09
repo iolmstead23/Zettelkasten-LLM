@@ -211,23 +211,28 @@ const UIProvider = ({ children }: any) => {
         }
     }
 
-    function getNodes(data: any, count?: number): any {
-
-        count = count ?? 0;
-
-        const files = data.map((item: any) => {
-            // increment by 1 regardless of item
-            count! += 1;
-
-            if (item.type=='file') {
-                return {id: String(count), text: item.name, myicon: 'el-icon-star-on'};
-            } else if (item.type=='folder') {
-                return getNodes(item.content,count)[0];
-            };
-        })
-
-        return files;
-    }
+    function getNodes(data: any): any {
+        let count: number = 0;
+    
+        function getNodeState(data: any): any[] {
+            let files: any[] = [];
+    
+            data.forEach((item: any) => {
+                // increment by 1 regardless of item
+                count += 1;
+    
+                if (item.type === 'file') {
+                    files.push({ id: String(count), text: item.name, myicon: 'el-icon-star-on' });
+                } else if (item.type === 'folder') {
+                    files.push(...getNodeState(item.content));
+                }
+            });
+    
+            return files;
+        }
+    
+        return getNodeState(data);
+    }    
 
     useEffect(() => {
         // grab data from database if user is logged in
