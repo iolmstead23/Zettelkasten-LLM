@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
-import { useFileTreeContext, useNewItemToggleContext, useNotifyContentContext, useNotifyToggleContext, useRenameToggleContext, useSelectedEditContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useFileTreeContext, useKnowledgeGraphContext, useNewItemToggleContext, useNotifyContentContext, useNotifyToggleContext, useRenameToggleContext, useSelectedEditContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
 import RenameFile from '@/components/ui/FileTree/RenameFileDialog';
 import NewItem from '@/components/ui/FileTree/NewItemDialog';
 import Notification from './Notification';
@@ -57,6 +57,7 @@ export default function Dashboard() {
                         content:selectedEditInfo.selectedEditID[1]
                       }
                     });
+
                     // notify user of successful save
                     notifyContent.setNotifyContent(["success","Save success!"]);
                     notifyToggle.setNotifyToggle(true);

@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import styledComponents from "styled-components";
 import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai";
 import { DiJavascript1, DiCss3Full, DiHtml5, DiReact, DiMarkdown } from "react-icons/di";
-import { useFileTreeContext, useSelectedIDContext, useNewItemToggleContext } from "@/components/ui/UIProvider";
+import { useFileTreeContext, useSelectedIDContext, useNewItemToggleContext, useKnowledgeGraphContext } from "@/components/ui/UIProvider";
 import EmptyFiles from "@/components/ui/Files";
 import FileDropdown from "@/components/ui/FileTree/FileDropdown";
 import FolderDropdown from "@/components/ui/FileTree/FolderDropdown";
@@ -165,6 +165,7 @@ const Tree = ({ children }: any) => {
 
 // Root component to render file tree
 const Root = ({ data, selection }: any) => {
+
   return (
     <div
       onContextMenu={(e) => {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useUser } from '@auth0/nextjs-auth0/client';
-import React, { useState, createContext, useEffect, useContext, useReducer } from 'react';
+import React, { useState, createContext, useEffect, useContext, useReducer, use } from 'react';
 
 // Create context for file tree, selected file, and rename toggle
 const FileTreeContext = createContext({});
@@ -12,6 +12,7 @@ const NewItemToggleContext = createContext({newIsOpen: false, setNewIsOpen: (e:b
 const IndexSortContext = createContext({indexSort: false, setIndexSort: (e:boolean)=> {e}});
 const NotificationToggleContext = createContext({notifyToggle: false, setNotifyToggle: (e:boolean)=> {e}});
 const NotificationContentContext = createContext({notifyContent:['',''], setNotifyContent: (e:[string,string]) => {e}});
+const KnowledgeGraphContext = createContext({nodes:[{}], setNodes: (e:Object[]) => {e}});
 
 interface State {
     files: any;
@@ -19,7 +20,7 @@ interface State {
 };
 
 interface Action {
-    type: 'get_files' | 'insert_file' | 'rename_file' | 'delete_file' | 'sort_index' | 'save_file';
+    type: 'get_files' | 'insert_file' | 'rename_file' | 'delete_file' | 'sort_index' | 'save_file' | 'get_nodes';
     selectID?: number;
     payload?: any;
     count?: number;
@@ -54,9 +55,6 @@ function reducer(state: State, action: Action): State {
     }
 
     function sort_index(state: State, action: Action): State {
-        // Initialize count with the action count or 0
-        action.count = action.count ?? 0;
-
         // Initialize count with the action count or 0
         action.count = action.count ?? 0;
 
@@ -115,7 +113,7 @@ function reducer(state: State, action: Action): State {
     
         // Return alphabetized files with sorted indexes
         return { files: sortFiles(alphabetizeFiles(state.files), action) };
-    }    
+    }
 
     function delete_file(state: State, action: Action) {
         return state.files.map((item: any) => {
@@ -195,6 +193,7 @@ const UIProvider = ({ children }: any) => {
     const [indexSort, setIndexSort] = useState<boolean>(false);
     const [notifyToggle, setNotifyToggle] = useState<boolean>(false);
     const [notifyContent, setNotifyContent] = useState(['','']);
+    const [nodes, setNodes] = useState<Object[]>([{}]);
     const { user } = useUser();
 
     // grabs data from database
@@ -211,7 +210,25 @@ const UIProvider = ({ children }: any) => {
             console.error("Error fetching data");
         }
     }
-    
+
+    function getNodes(data: any, count?: number): any {
+
+        count = count ?? 0;
+
+        const files = data.map((item: any) => {
+            // increment by 1 regardless of item
+            count! += 1;
+
+            if (item.type=='file') {
+                return {id: String(count), text: item.name, myicon: 'el-icon-star-on'};
+            } else if (item.type=='folder') {
+                return getNodes(item.content,count)[0];
+            };
+        })
+
+        return files;
+    }
+
     useEffect(() => {
         // grab data from database if user is logged in
         if (user) {
@@ -227,7 +244,7 @@ const UIProvider = ({ children }: any) => {
                         { id: 0, name: "New File 2.md", type: "file", content: "This is dummy text." },
                     ]},
                 ]
-            })
+            });
         }
 
         setIndexSort(true);
@@ -240,6 +257,11 @@ const UIProvider = ({ children }: any) => {
                 type: 'sort_index',
                 payload:{EditorID:selectedEditID,setEditorID:setSelectedEditID,selectID:selectedID,setSelectID:setSelectedID}
             });
+
+            // initial rendering of nodes
+            setNodes(getNodes(state.files));
+
+            // reset toggle to off
             setIndexSort(false);
         }
     }, [indexSort]);
@@ -253,7 +275,9 @@ const UIProvider = ({ children }: any) => {
                             <IndexSortContext.Provider value={{indexSort, setIndexSort}}>
                                 <NotificationToggleContext.Provider value={{notifyToggle,setNotifyToggle}}>
                                     <NotificationContentContext.Provider value={{notifyContent,setNotifyContent}}>
-                                        {children}
+                                        <KnowledgeGraphContext.Provider value={{nodes,setNodes}}>
+                                            {children}
+                                        </KnowledgeGraphContext.Provider>
                                     </NotificationContentContext.Provider>
                                 </NotificationToggleContext.Provider>
                             </IndexSortContext.Provider>
@@ -273,5 +297,6 @@ export function useNewItemToggleContext() { return useContext(NewItemToggleConte
 export function useSortIndexContext() { return useContext(IndexSortContext) };
 export function useNotifyToggleContext() { return useContext(NotificationToggleContext) };
 export function useNotifyContentContext() { return useContext(NotificationContentContext)};
+export function useKnowledgeGraphContext() { return useContext(KnowledgeGraphContext) };
 
 export default UIProvider;

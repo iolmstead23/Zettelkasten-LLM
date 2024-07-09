@@ -4,7 +4,7 @@ import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSelectedEditContext, useSortIndexContext, useNotifyToggleContext, useNotifyContentContext } from '@/components/ui/UIProvider';
 
 function classNames(...classes: any) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 };
 
 /** This keeps track of the dropdown options that allow FileTree actions */

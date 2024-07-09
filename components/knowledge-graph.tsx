@@ -2,8 +2,9 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import RelationGraph, { RelationGraphInstance } from 'relation-graph/react';
-import type { MutableRefObject } from 'react';
+
 import type {
+  JsonNode,
   RGLine,
   RGLink,
   RGNode,
@@ -11,22 +12,10 @@ import type {
   RGOptions,
   RelationGraphExpose
 } from 'relation-graph/react';
-
-const staticJsonData = {
-  rootId: '1',
-  nodes: [
-    { id: '1', text: 'Node-1', myicon: 'el-icon-star-on' },
-    { id: '2', text: 'Node-2', myicon: 'el-icon-star-on' },
-    { id: '3', text: 'Node-3', myicon: 'el-icon-star-on' },
-  ],
-  lines: [
-    { from: '1', to: '3', text: 'Line text' },
-    { from: '1', to: '2', text: 'Line text' },
-  ]
-};
+import { useKnowledgeGraphContext, useSortIndexContext } from './ui/UIProvider';
 
 const NodeSlot: React.FC<RGNodeSlotProps> = ({ node }) => {
-  console.log('NodeSlot:', node.text);
+  // console.log('NodeSlot:', node.text);
   return (
     <div style={{ lineHeight: '80px', textAlign: 'center' }}>
       <span>{node.text}</span>
@@ -35,6 +24,9 @@ const NodeSlot: React.FC<RGNodeSlotProps> = ({ node }) => {
 };
 
 const SimpleGraph: React.FC = () => {
+
+  const knowledgeGraph = useKnowledgeGraphContext();
+  const sortIndex = useSortIndexContext();
   const graphRef = useRef<RelationGraphExpose | null>(null);
 
   useEffect(() => {
@@ -42,6 +34,19 @@ const SimpleGraph: React.FC = () => {
       showGraph();
     }
   });
+
+  // trigger an index sort and get updated nodes
+  useEffect(()=>{
+    sortIndex.setIndexSort(true);
+  },[])
+
+  const nodes: any[] = knowledgeGraph.nodes;
+
+  const staticJsonData = {
+    rootId: '1',
+    nodes: nodes,
+    lines: []
+  };
 
   const showGraph = async () => {
     if (graphRef.current) {
@@ -62,12 +67,12 @@ const SimpleGraph: React.FC = () => {
   };
 
   const onNodeClick = (node: RGNode, _e: MouseEvent | TouchEvent) => {
-    console.log('onNodeClick:', node.text);
+    // console.log('onNodeClick:', node.text);
     return true;
   };
 
   const onLineClick = (line: RGLine, _link: RGLink, _e: MouseEvent | TouchEvent) => {
-    console.log('onLineClick:', line.text, line.from, line.to);
+    // console.log('onLineClick:', line.text, line.from, line.to);
     return true;
   };
 

@@ -3,7 +3,7 @@
 import { Fragment, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useRenameToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useRenameToggleContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
 /**
  * This file is responsible for providing an interface to rename files
