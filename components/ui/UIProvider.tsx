@@ -30,13 +30,28 @@ function reducer(state: State, action: Action): State {
 
     function rename_file(state: State, action: Action) {
         return (state.files).map((item: any) => {
-            if (item.type === "file") {
-                if (item.id === action.payload.id) {
+            // if we have located the selected file
+            if (item.id == action.payload.id) {
+                // return new filename with extension
+                if (item.type == 'file') {
                     return {...item, name: action.payload.newName};
                 }
-            } else if (item.type === "folder") {
-                return {...item, content: rename_file({files: item.content}, action)};
+                // return new foldername without extension
+                else if (item.type == 'folder') {
+                    return {...item, name: action.payload.newName.split('.')[0]};
+                }
             }
+            else {
+                // return item without changes
+                if (item.type=='file') {
+                    return item;
+                }
+                // dig through folder
+                else if (item.type=='folder') {
+                    return {...item, content: rename_file({files: item.content}, action)};
+                }
+            }
+            
             return item;
         });
     }

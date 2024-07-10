@@ -67,8 +67,6 @@ export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | nu
                                 </span>
                             )}
                         </Menu.Item>
-                        {/**
-                         * Enable this feature when folders can be renamed
                         <Menu.Item>
                             {({ active }) => (
                                 <span
@@ -83,8 +81,6 @@ export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | nu
                                 </span>
                             )}
                         </Menu.Item>
-                        */}
-                        {
                         <Menu.Item>
                             {({ active }) => (
                                 <span
@@ -107,7 +103,6 @@ export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | nu
                                 </span>
                             )}
                         </Menu.Item>
-                        }
                     </div>
                 </Menu.Items>
             </Transition>
