@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircleIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 import { useNotifyContentContext, useNotifyToggleContext } from '@/components/ui/UIProvider'
 import { useEffect } from 'react';
@@ -19,9 +19,11 @@ export default function Notification() {
   const symbol: any = (type: string) => {
     switch (type) {
         default:
-            return type;
+          return type;
         case 'success':
-            return <CheckCircleIcon aria-hidden="true" className="h-6 w-6 text-green-400" />;
+          return <CheckCircleIcon aria-hidden="true" className="h-6 w-6 text-green-400" />;
+        case 'error':
+          return <ExclamationCircleIcon aria-hidden="true" className="h-6 w-6 text-red-400" />;
     }
   }
 

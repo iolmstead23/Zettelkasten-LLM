@@ -93,18 +93,25 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                     onClick={() => {
-                      fileContext.dispatch({
-                        type:'rename_file',
-                        payload:{id:id, newName:newName+"."+ext}
-                      });
+                      if (newName.length < 15) {
+                        // rename file
+                        fileContext.dispatch({
+                          type:'rename_file',
+                          payload:{id:id, newName:newName+"."+ext}
+                        });
 
-                      // notify user of successful save
-                      notifyContent.setNotifyContent(["success","Rename success!"]);
-                      notifyToggle.setNotifyToggle(true);
+                        // notify user of successful save
+                        notifyContent.setNotifyContent(["success","Rename success!"]);
+                        notifyToggle.setNotifyToggle(true);
 
-                      // resort the filetree
-                      sortIndex.setIndexSort(true);
-                      renameToggleContext.setRenameIsOpen(false);
+                        // resort the filetree
+                        sortIndex.setIndexSort(true);
+                        renameToggleContext.setRenameIsOpen(false);
+                      } else {
+                        // notify user of error
+                        notifyContent.setNotifyContent(["error","Name is more than 15 characters!"]);
+                        notifyToggle.setNotifyToggle(true);
+                      };
                     }}
                   >
                     Rename

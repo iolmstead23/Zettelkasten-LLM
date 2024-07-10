@@ -1,10 +1,9 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import RelationGraph, { RelationGraphInstance } from 'relation-graph/react';
 
 import type {
-  JsonNode,
   RGLine,
   RGLink,
   RGNode,
@@ -12,13 +11,24 @@ import type {
   RGOptions,
   RelationGraphExpose
 } from 'relation-graph/react';
-import { useKnowledgeGraphContext, useSortIndexContext } from './ui/UIProvider';
+import { useKnowledgeGraphContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
 const NodeSlot: React.FC<RGNodeSlotProps> = ({ node }) => {
-  // console.log('NodeSlot:', node.text);
+  // set size to small
+  node.width = node.height = 25;
+  // move text left based on text length (numbers are arbitrary)
+  const dynamicMargin = `-${Math.pow(node.text?.length!/3.6,2)}px`;
+  // disable dragging event
+  node.disableDrag=true;
+
   return (
-    <div style={{ lineHeight: '80px', textAlign: 'center' }}>
-      <span>{node.text}</span>
+    <div className="py-[110%]">
+      <span
+        className="text-center text-black text-xs text-nowrap"
+        style={{ marginLeft: dynamicMargin }}
+      >
+        {node.text?.split('.')[0]}
+      </span>
     </div>
   );
 };
