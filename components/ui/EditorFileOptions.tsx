@@ -22,7 +22,7 @@ export default function EditorFileOptions() {
         }});
 
         // notify user of successful save
-        notifyContent.setNotifyContent(["success","Rename success!"]);
+        notifyContent.setNotifyContent(["success","Save success!"]);
         notifyToggle.setNotifyToggle(true);
     }
 

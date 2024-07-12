@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSelectedEditContext, useSortIndexContext, useNotifyToggleContext, useNotifyContentContext, useFileLocationContext } from '@/components/ui/UIProvider';
+import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSelectedEditContext, useSortIndexContext, useNotifyToggleContext, useNotifyContentContext, useFileLocationContext, useDeleteToggleContext } from '@/components/ui/UIProvider';
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ');
@@ -9,10 +9,9 @@ function classNames(...classes: any) {
 
 /** This keeps track of the dropdown options that allow FileTree actions */
 export default function FileDropdown({id,data,name}:{id:number,data:string,name:string}) {
-    const filetreeContext: any = useFileTreeContext();
-    const selectionIDContext = useSelectedIDContext();
     const selectEditContext = useSelectedEditContext();
     const renameContext = useRenameToggleContext();
+    const deleteContext = useDeleteToggleContext();
     const notifyToggle = useNotifyToggleContext();
     const notifyContent = useNotifyContentContext();
     const fileLocation = useFileLocationContext();
@@ -63,7 +62,7 @@ export default function FileDropdown({id,data,name}:{id:number,data:string,name:
                                         'block px-4 py-2 text-sm'
                                     )}
 
-                                    onClick={() => {renameContext?.setRenameIsOpen(true);}}
+                                    onClick={() => {renameContext.setRenameIsOpen(true);}}
                                 >
                                 Rename
                                 </span>
@@ -72,24 +71,12 @@ export default function FileDropdown({id,data,name}:{id:number,data:string,name:
                         <Menu.Item>
                             {({ active }) => (
                                 <span
-                                className={classNames(
-                                    active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                                    'block px-4 py-2 text-sm'
-                                )}
+                                    className={classNames(
+                                        active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                                        'block px-4 py-2 text-sm'
+                                    )}
 
-                                onClick={() => {
-                                    filetreeContext.dispatch({
-                                    type:'delete_file',
-                                    payload:{id:selectionIDContext.selectedID[0]}
-                                    });
-
-                                    // notify user of successful save
-                                    notifyContent.setNotifyContent(["success","Delete success!"]);
-                                    notifyToggle.setNotifyToggle(true);
-
-                                    // resort the filetree
-                                    sortIndex.setIndexSort(true);
-                                }}
+                                    onClick={() => {deleteContext.setDeleteIsOpen(true);}}
                                 >
                                 Delete
                                 </span>

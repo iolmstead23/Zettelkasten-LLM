@@ -1,16 +1,17 @@
 'use client'
 
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useRenameToggleContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useDeleteToggleContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
 /**
- * This file is responsible for providing an interface to rename files
-*/
-const RenameFile = ({ name, id }: { name:string, id:number }) => {
-/** This enables us to toggle the rename modal open and close */
-  const renameToggleContext: any = useRenameToggleContext();
+ * This file is responsible for providing an interface to delete files
+ */
+const DeleteItem = ({ id }: { id: number }) => {
+
+  /** This enables us to toggle the delete modal open and close */
+  const deleteToggleContext: any = useDeleteToggleContext();
 
   /** This enables us to intitiate an index sort */
   const sortIndex = useSortIndexContext();
@@ -21,21 +22,12 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
   /** This keeps track of the cancel button */
   const cancelButtonRef = useRef(null);
 
-  /** newName and setNewName are used to keep track of the input's state */
-  const [newName, setNewName] = useState<string>('');
-
-  /** This updates the newName state whenever input has changed */
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {setNewName(event.target.value);};
-  
-  /** ext is the files extension */
-  const ext = name.split('.')[1];
-
   const notifyToggle = useNotifyToggleContext();
   const notifyContent = useNotifyContentContext();
 
   return (
-    <Transition.Root show={renameToggleContext.renameIsOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => renameToggleContext.setRenameIsOpen(false)}>
+    <Transition.Root show={deleteToggleContext.deleteIsOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => deleteToggleContext.setDeleteIsOpen(false)}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -66,22 +58,14 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
                   </div>
                   <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                     <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                      Rename
+                      Are you sure you want to delete this item? Make sure you have saved!
                     </Dialog.Title>
                     <div className="mt-2">
-                        <div>
-                            <label htmlFor="rename" className="sr-only">
-                                Rename File Without Extension
-                            </label>
-                            <input
-                                type="text"
-                                name="rename"
-                                id="rename"
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                placeholder={name.split('.')[0]}
-                                onChange={handleInputChange}
-                            />
-                        </div>
+                      <div>
+                        <label htmlFor="delete" className="sr-only">
+                          Delete
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -90,35 +74,29 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                     onClick={() => {
-                      if (newName.length < 15) {
-                        // rename file
+                        // delete
                         fileContext.dispatch({
-                          type:'rename_file',
-                          payload:{id:id, newName:newName+"."+ext}
+                            type:'delete_file',
+                            payload:{id:id}
                         });
 
                         // notify user of successful save
-                        notifyContent.setNotifyContent(["success","Rename success!"]);
+                        notifyContent.setNotifyContent(["success", "Delete success!"]);
                         notifyToggle.setNotifyToggle(true);
 
                         // resort the filetree
                         sortIndex.setIndexSort(true);
-                        renameToggleContext.setRenameIsOpen(false);
-                      } else {
-                        // notify user of error
-                        notifyContent.setNotifyContent(["error","Name is more than 15 characters!"]);
-                        notifyToggle.setNotifyToggle(true);
-                      };
+                        deleteToggleContext.setDeleteIsOpen(false);
                     }}
                   >
-                    Rename
+                    Delete
                   </button>
 
                   <button
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     onClick={() => {
-                      renameToggleContext.setRenameIsOpen(false);
+                      deleteToggleContext.setDeleteIsOpen(false);
                     }}
                     ref={cancelButtonRef}
                   >
@@ -134,4 +112,4 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
   );
 };
 
-export default RenameFile;
+export default DeleteItem;

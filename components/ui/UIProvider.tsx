@@ -1,7 +1,7 @@
 'use client'
 
 import { useUser } from '@auth0/nextjs-auth0/client';
-import React, { useState, createContext, useEffect, useContext, useReducer } from 'react';
+import React, { useState, createContext, useEffect, useContext, useReducer, use } from 'react';
 
 // Create context for file tree, selected file, and rename toggle
 const FileTreeContext = createContext({});
@@ -9,6 +9,7 @@ const SelectedIDContext = createContext({selectedID: [0,''], setSelectedID: (e:[
 const SelectedEditIDContext = createContext({selectedEditID: [0,'',''], setSelectedEditID: (e:[number,string,string]) => {e}});
 const RenameToggleContext = createContext({renameIsOpen: false, setRenameIsOpen: (e:boolean) => {e}});
 const NewItemToggleContext = createContext({newIsOpen: false, setNewIsOpen: (e:boolean) => {e}});
+const DeleteToggleContext = createContext({deleteIsOpen: false, setDeleteIsOpen: (e:boolean) => {e}});
 const IndexSortContext = createContext({indexSort: false, setIndexSort: (e:boolean)=> {e}});
 const NotificationToggleContext = createContext({notifyToggle: false, setNotifyToggle: (e:boolean)=> {e}});
 const NotificationContentContext = createContext({notifyContent:['',''], setNotifyContent: (e:[string,string]) => {e}});
@@ -41,7 +42,6 @@ function reducer(state: State, action: Action): State {
 
         const id: number = action.payload?.id!;
         const newName: string = action.payload?.newName!;
-
 
         return (state.files).map((item: any) => {
             // if we have located the selected file
@@ -203,7 +203,7 @@ function reducer(state: State, action: Action): State {
                     // continue to drill through folder
                     return {
                         ...item,
-                        content: delete_file({files: item.contents}, action)
+                        contents: delete_file({files: item.contents}, action)
                     };
                 }
             }
@@ -264,6 +264,7 @@ const UIProvider = ({ children }: any) => {
     const [selectedEditID, setSelectedEditID] = useState<[number, string, string]>([0,'','']);
     const [renameIsOpen, setRenameIsOpen] = useState<boolean>(false);
     const [newIsOpen, setNewIsOpen] = useState<boolean>(false);
+    const [deleteIsOpen, setDeleteIsOpen] = useState<boolean>(false);
     const [indexSort, setIndexSort] = useState<boolean>(false);
     const [notifyToggle, setNotifyToggle] = useState<boolean>(false);
     const [notifyContent, setNotifyContent] = useState(['','']);
@@ -319,19 +320,12 @@ const UIProvider = ({ children }: any) => {
                 type: "get_files",
                 selectID: 0,
                 payload: [
-                    {id: 0, type: 'file', name: 'New File', contents: 'This is dummy text' },
+                    {id: 0, type: 'file', name: 'New File.d', contents: 'This is dummy text' },
                     {id: 1, type: 'folder', name: 'New Folder', contents: [
-                        {id: 2, type: 'file', name: 'New File 2', contents: 'This is dummy text' },
+                        {id: 2, type: 'file', name: 'New File 2.md', contents: 'This is dummy text' },
                         {id: 3, type: 'folder', name: 'New Folder 2', contents: [
-                            {id: 4, type: 'file', name: 'New File 3', contents: 'This is dummy text' }
-                        ]},
-                        {id: 5, type: 'folder', name: 'New Folder 4', contents: [
-                            {id: 6, type: 'file', name: 'New File 4', contents: 'This is dummy text' },
-                            {id: 7, type: 'file', name: 'New File 5', contents: 'This is dummy text' },
-                            {id: 8, type: 'folder', name: 'New Folder 5', contents: [
-                                {id: 9, type: 'file', name: 'New File 6', contents: 'This is dummy text' }
-                            ]},
-                        ]},
+                            {id: 4, type: 'file', name: 'New File 3.md', contents: 'This is dummy text' }
+                        ]}
                     ]},
                 ]
             });
@@ -367,17 +361,19 @@ const UIProvider = ({ children }: any) => {
                 <SelectedEditIDContext.Provider value={{selectedEditID, setSelectedEditID}}>
                     <RenameToggleContext.Provider value={{renameIsOpen, setRenameIsOpen}}>
                         <NewItemToggleContext.Provider value={{newIsOpen, setNewIsOpen}}>
-                            <IndexSortContext.Provider value={{indexSort, setIndexSort}}>
-                                <NotificationToggleContext.Provider value={{notifyToggle,setNotifyToggle}}>
-                                    <NotificationContentContext.Provider value={{notifyContent,setNotifyContent}}>
-                                        <KnowledgeGraphContext.Provider value={{nodes,setNodes}}>
-                                            <FileLocationContext.Provider value={{fileLocation,setFileLocation}}>
-                                                {children}
-                                            </FileLocationContext.Provider>
-                                        </KnowledgeGraphContext.Provider>
-                                    </NotificationContentContext.Provider>
-                                </NotificationToggleContext.Provider>
-                            </IndexSortContext.Provider>
+                            <DeleteToggleContext.Provider value={{deleteIsOpen,setDeleteIsOpen}}>
+                                <IndexSortContext.Provider value={{indexSort, setIndexSort}}>
+                                    <NotificationToggleContext.Provider value={{notifyToggle,setNotifyToggle}}>
+                                        <NotificationContentContext.Provider value={{notifyContent,setNotifyContent}}>
+                                            <KnowledgeGraphContext.Provider value={{nodes,setNodes}}>
+                                                <FileLocationContext.Provider value={{fileLocation,setFileLocation}}>
+                                                    {children}
+                                                </FileLocationContext.Provider>
+                                            </KnowledgeGraphContext.Provider>
+                                        </NotificationContentContext.Provider>
+                                    </NotificationToggleContext.Provider>
+                                </IndexSortContext.Provider>
+                            </DeleteToggleContext.Provider>
                         </NewItemToggleContext.Provider>
                     </RenameToggleContext.Provider>
                 </SelectedEditIDContext.Provider>
@@ -391,6 +387,7 @@ export function useSelectedIDContext() { return useContext(SelectedIDContext) };
 export function useSelectedEditContext() { return useContext(SelectedEditIDContext) };
 export function useRenameToggleContext() { return useContext(RenameToggleContext) };
 export function useNewItemToggleContext() { return useContext(NewItemToggleContext) };
+export function useDeleteToggleContext() { return useContext(DeleteToggleContext)};
 export function useSortIndexContext() { return useContext(IndexSortContext) };
 export function useNotifyToggleContext() { return useContext(NotificationToggleContext) };
 export function useNotifyContentContext() { return useContext(NotificationContentContext)};
