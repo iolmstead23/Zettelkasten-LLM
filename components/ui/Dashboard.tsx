@@ -3,23 +3,21 @@
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
-import { useFileTreeContext, useKnowledgeGraphContext, useNewItemToggleContext, useNotifyContentContext, useNotifyToggleContext, useRenameToggleContext, useSelectedEditContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useNewItemToggleContext, useNotifyToggleContext, useRenameToggleContext, useSelectedIDContext } from '@/components/ui/UIProvider';
 import RenameFile from '@/components/ui/FileTree/RenameFileDialog';
 import NewItem from '@/components/ui/FileTree/NewItemDialog';
 import Notification from './Notification';
+import FileInfoDisplay from './FileInfoDisplay';
+import EditorFileOptions from './EditorFileOptions';
 
 const EditorComp = dynamic(() => import('@/components/EditorComponent'), { ssr: false });
 
 /** This is the main Dashboard component */
 export default function Dashboard() {
-  const filetreeContext: any = useFileTreeContext();
   const renameToggle = useRenameToggleContext();
   const newItemToggle = useNewItemToggleContext();
   const selectedInfo = useSelectedIDContext();
-  const selectedEditInfo = useSelectedEditContext();
   const notifyToggle = useNotifyToggleContext();
-  const notifyContent = useNotifyContentContext();
-  const sortIndex = useSortIndexContext();
 
   return (
     <main className="xl:pl-96 max-h-full">
@@ -46,29 +44,19 @@ export default function Dashboard() {
         {/* Main area */}
         <div className="lg:pl-20">
           <Suspense fallback={<p className='text-center'>Loading...</p>}>
-            <div className="flex overflow-y-auto flex-col max-h-screen">
-              <div className='m-2'>
-                <button
-                  onClick={()=>{
-                    selectedEditInfo.selectedEditID[0] != 0 && filetreeContext.dispatch({
-                      type:'save_file',
-                      payload:{
-                        id:selectedEditInfo.selectedEditID[0],
-                        content:selectedEditInfo.selectedEditID[1]
-                      }
-                    });
-
-                    // notify user of successful save
-                    notifyContent.setNotifyContent(["success","Save success!"]);
-                    notifyToggle.setNotifyToggle(true);
-
-                    // resort the filetree
-                    sortIndex.setIndexSort(true);
-                  }}>
-                  Save
-                </button>
+            <div className='my-2'>
+              <div className='relative items-center flex'>
+                <EditorFileOptions />
               </div>
-              <EditorComp markdown='Select a file!'/>
+            </div>
+            <div className="block overflow-y-auto max-h-screen">
+              <div className='h-[74vh]'>
+                <EditorComp markdown='Select a file!'/>
+              </div>
+
+              <div className='bottom-0 p-1'>
+                <FileInfoDisplay />
+              </div>
             </div>
           </Suspense>
 

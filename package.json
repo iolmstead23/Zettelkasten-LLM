@@ -16,7 +16,7 @@
     "@editorjs/header": "^2.8.1",
     "@editorjs/paragraph": "^2.11.4",
     "@faker-js/faker": "^8.4.1",
-    "@headlessui/react": "^1.7.18",
+    "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^2.1.1",
     "@mantine/core": "^7.6.2",
     "@mdx-js/react": "^3.0.1",

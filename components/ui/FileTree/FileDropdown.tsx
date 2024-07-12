@@ -1,20 +1,21 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSelectedEditContext, useSortIndexContext, useNotifyToggleContext, useNotifyContentContext } from '@/components/ui/UIProvider';
+import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSelectedEditContext, useSortIndexContext, useNotifyToggleContext, useNotifyContentContext, useFileLocationContext } from '@/components/ui/UIProvider';
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ');
 };
 
 /** This keeps track of the dropdown options that allow FileTree actions */
-export default function FileDropdown({id,data}:{id:number,data:string}) {
+export default function FileDropdown({id,data,name}:{id:number,data:string,name:string}) {
     const filetreeContext: any = useFileTreeContext();
     const selectionIDContext = useSelectedIDContext();
     const selectEditContext = useSelectedEditContext();
     const renameContext = useRenameToggleContext();
     const notifyToggle = useNotifyToggleContext();
     const notifyContent = useNotifyContentContext();
+    const fileLocation = useFileLocationContext();
     const sortIndex = useSortIndexContext();
 
     return (
@@ -45,7 +46,9 @@ export default function FileDropdown({id,data}:{id:number,data:string}) {
                                     )}
 
                                     onClick={() => {
-                                        selectEditContext.setSelectedEditID([id,data]);
+                                        selectEditContext.setSelectedEditID([id,data,name]);
+                                        fileLocation.setFileLocation(['']);
+                                        sortIndex.setIndexSort(true);
                                     }}
                                 >
                                 Edit

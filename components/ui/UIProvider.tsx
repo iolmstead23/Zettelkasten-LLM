@@ -1,21 +1,22 @@
 'use client'
 
 import { useUser } from '@auth0/nextjs-auth0/client';
-import React, { useState, createContext, useEffect, useContext, useReducer, use } from 'react';
+import React, { useState, createContext, useEffect, useContext, useReducer } from 'react';
 
 // Create context for file tree, selected file, and rename toggle
 const FileTreeContext = createContext({});
 const SelectedIDContext = createContext({selectedID: [0,''], setSelectedID: (e:[number,string]) => {e}});
-const SelectedEditIDContext = createContext({selectedEditID: [0,''], setSelectedEditID: (e:[number,string]) => {e}});
+const SelectedEditIDContext = createContext({selectedEditID: [0,'',''], setSelectedEditID: (e:[number,string,string]) => {e}});
 const RenameToggleContext = createContext({renameIsOpen: false, setRenameIsOpen: (e:boolean) => {e}});
 const NewItemToggleContext = createContext({newIsOpen: false, setNewIsOpen: (e:boolean) => {e}});
 const IndexSortContext = createContext({indexSort: false, setIndexSort: (e:boolean)=> {e}});
 const NotificationToggleContext = createContext({notifyToggle: false, setNotifyToggle: (e:boolean)=> {e}});
 const NotificationContentContext = createContext({notifyContent:['',''], setNotifyContent: (e:[string,string]) => {e}});
 const KnowledgeGraphContext = createContext({nodes:[{}], setNodes: (e:Object[]) => {e}});
+const FileLocationContext = createContext({fileLocation:[''], setFileLocation: (e:[string]) => {e}});
 
 interface State {
-    files: any;
+    files: FileTreeObject[];
     start_count?: number;
 };
 
@@ -24,21 +25,34 @@ interface Action {
     selectID?: number;
     payload?: any;
     count?: number;
+    fileFound?: boolean;
+};
+
+interface FileTreeObject {
+    id: number;
+    type: string;
+    name: string;
+    contents: FileTreeObject[] | string;
 };
 
 function reducer(state: State, action: Action): State {
 
-    function rename_file(state: State, action: Action) {
+    function rename_file(state: State, action: Action): any {
+
+        const id: number = action.payload?.id!;
+        const newName: string = action.payload?.newName!;
+
+
         return (state.files).map((item: any) => {
             // if we have located the selected file
-            if (item.id == action.payload.id) {
+            if (item.id == id) {
                 // return new filename with extension
                 if (item.type == 'file') {
-                    return {...item, name: action.payload.newName};
+                    return {...item, name: newName};
                 }
                 // return new foldername without extension
                 else if (item.type == 'folder') {
-                    return {...item, name: action.payload.newName.split('.')[0]};
+                    return {...item, name: newName.split('.')[0]};
                 }
             }
             else {
@@ -48,7 +62,7 @@ function reducer(state: State, action: Action): State {
                 }
                 // dig through folder
                 else if (item.type=='folder') {
-                    return {...item, content: rename_file({files: item.content}, action)};
+                    return {...item, contents: rename_file({files: item.contents}, action)};
                 }
             }
             
@@ -56,14 +70,14 @@ function reducer(state: State, action: Action): State {
         });
     }
 
-    function save_file(state: State, action: Action) {
+    function save_file(state: State, action: Action): any {
         return (state.files).map((item: any) => {
             if (item.type === "file") {
-                if (item.id === action.payload.id) {
-                    return {id: item.id, type: "file", name: item.name, content: action.payload.content};
+                if (item.id === action.payload?.id) {
+                    return {id: item.id, type: "file", name: item.name, contents: action.payload?.contents};
                 }
             } else if (item.type === "folder") {
-                return {type: "folder", name: item.name, content: save_file({files: item.content}, action)};
+                return {type: "folder", name: item.name, contents: save_file({files: item.contents}, action)};
             }
             return item;
         });
@@ -72,6 +86,8 @@ function reducer(state: State, action: Action): State {
     function sort_index(state: State, action: Action): State {
         // Initialize count with the action count or 0
         action.count = action.count ?? 0;
+        
+        action.fileFound = false;
 
         const alphabetizeFiles = (files: any[]): any[] =>{
             // create sorted list of items in current directory
@@ -85,66 +101,109 @@ function reducer(state: State, action: Action): State {
             return sorted_root.map((item: any) => {
                 // dig through directory of item if folder
                 if (item.type == 'folder') {
-                    return {...item, content: alphabetizeFiles(item.content)};
+                    return {...item, contents: alphabetizeFiles(item.contents)};
                 }
 
                 // return item if file
                 return item;
             })
         }
+
+        function getFilePath(
+            fileTreeObjects: FileTreeObject[],
+            selectedId: number
+        ): string[] {
+            let fileFound = false;
+            let filePath: string[] = [];
+            const mapFileTree = (objects: FileTreeObject[]): string[] => {
+                function mapFolders(objects: FileTreeObject[]): string[] {
+                    objects.forEach((obj: FileTreeObject): any => {
+                        if (!fileFound) {
+                            if (obj.type === 'file') {
+                                if (obj.id === selectedId && !fileFound) {
+                                    fileFound = true;
+                                }
+                            } else {
+                                filePath = [...filePath, obj.name];
+                                const folderContent: FileTreeObject[] = [...obj.contents as FileTreeObject[]];
+                                mapFolders(folderContent);
+                                if (!fileFound) { filePath.pop() };
+                            }
+                        } else { return; }
+            
+                    });
+                    return filePath;
+                }
+                return mapFolders(objects);
+            }
+            return mapFileTree(fileTreeObjects);
+        }
     
-        // Function to sort files and update IDs
-        function sortFiles(files: any[], action: Action): any[] {
-            return files.map((item: any) => {
+        function sortFiles(files: FileTreeObject[], action: Action): FileTreeObject[] {
+
+            const editorID = action.payload?.editorID;
+            const setEditorID = action.payload?.setEditorID!;
+            const selectID = action.payload?.selectID;
+            const setSelectID = action.payload?.setSelectID!;
+            const setFileLocation = action.payload?.setSelectFileLocation!;
+
+            let fileMap: any[] = [];
+        
+            fileMap = files.map((item: FileTreeObject) => {
                 if (item.type === 'file') {
                     action.count! += 1; // Increment count for files
-
-                    // update editor of new id
-                    action.payload.editorID ?
-                        action.payload.editorID[0] == item.id ? (
-                            action.payload.setEditorID([action.count,action.payload.editorID[1]])
-                        ): 0: 0;
-
-                    // update selection of new id
-                    action.payload.selectID ?
-                        action.payload.selectID[0] == item.id ? (
-                            action.payload.setSelectID([action.count,action.payload.selectID[1]])
-                        ):0 :0;
-
+        
+                    // Update editor and select IDs if they match the current item ID
+                    if (editorID && editorID[0] == item.id) {
+                        setEditorID([action.count!, editorID[1], editorID[2]]);
+                    }
+        
+                    if (selectID && selectID[0] == item.id) {
+                        setSelectID([action.count as number, selectID[1], selectID[2]]);
+                    }
+        
                     const updatedFile = { ...item, id: action.count }; // Update file with new ID
                     return updatedFile;
                 } else if (item.type === 'folder') {
-                    const currentCount = action.count! + 1; // Store current count for folder ID (otherwise folder ID will increment with files)
+                    const currentCount = action.count! + 1; // Store current count for folder ID
                     action.count! += 1;
-                    const sortedContent = sortFiles([...item.content], action); // Recursively sort folder contents
+                    const sortedContent = sortFiles([...item.contents as FileTreeObject[]], action); // Recursively sort folder contents
+        
                     return {
                         ...item,
                         id: currentCount,
-                        content: sortedContent
+                        contents: sortedContent
                     };
                 }
             });
-        };
+
+            // update file location
+            setFileLocation(getFilePath(fileMap, editorID[0]));
+        
+            return fileMap;
+        }
     
         // Return alphabetized files with sorted indexes
-        return { files: sortFiles(alphabetizeFiles(state.files), action) };
+        return {files: sortFiles(alphabetizeFiles(state.files), action)};
     }
 
     function delete_file(state: State, action: Action) {
-        return state.files.map((item: any) => {
+
+        const id = action.payload?.id;
+        return state.files.map((item: any):any => {
             if (item.type === "file") {
                 // delete file
-                return (item.id === action.payload.id) ? false : item;
+                return (item.id === id) ? false : item;
             } else if (item.type === "folder") {
 
-                if (item.id == action.payload.id) {
+                if (item.id == id) {
                     // delete entire folder
-                    return (item.id === action.payload.id) ? false : item;
+                    return (item.id === id) ? false : item;
                 } else {
                     // continue to drill through folder
                     return {
                         ...item,
-                        content: delete_file({files: item.content}, action)
+                        content: delete_file({files: item.contents}, action)
                     };
                 }
             }
@@ -160,11 +219,11 @@ function reducer(state: State, action: Action): State {
             return files.map((item: any) => {
                 if (item.type === 'folder') {
                     if (item.id == index) {
-                        const updatedFolder = {...item, content:[...item.content, payload]};
+                        const updatedFolder = {...item, contents:[...item.contents, payload]};
                         return updatedFolder;
                     } else {
-                        const updatedContent = updateFolderContent(item.content, index, payload);
-                        return { ...item, content: updatedContent };
+                        const updatedContent = updateFolderContent(item.contents, index, payload);
+                        return { ...item, contents: updatedContent };
                     }
                 }
                 return item;
@@ -202,13 +261,14 @@ function reducer(state: State, action: Action): State {
 const UIProvider = ({ children }: any) => {
     const [state, dispatch] = useReducer(reducer, { files: [] });
     const [selectedID, setSelectedID] = useState<[number, string]>([0,'']);
-    const [selectedEditID, setSelectedEditID] = useState<[number, string]>([0, '']);
+    const [selectedEditID, setSelectedEditID] = useState<[number, string, string]>([0,'','']);
     const [renameIsOpen, setRenameIsOpen] = useState<boolean>(false);
     const [newIsOpen, setNewIsOpen] = useState<boolean>(false);
     const [indexSort, setIndexSort] = useState<boolean>(false);
     const [notifyToggle, setNotifyToggle] = useState<boolean>(false);
     const [notifyContent, setNotifyContent] = useState(['','']);
     const [nodes, setNodes] = useState<Object[]>([{}]);
+    const [fileLocation,setFileLocation] = useState<[string]>(['']);
     const { user } = useUser();
 
     // grabs data from database
@@ -226,10 +286,10 @@ const UIProvider = ({ children }: any) => {
         }
     }
 
-    function getNodes(data: any): any {
+    function getNodes(data: FileTreeObject[]): any {
         let count: number = 0;
     
-        function getNodeState(data: any): any[] {
+        function getNodeState(data: FileTreeObject[]): any[] {
             let files: any[] = [];
     
             data.forEach((item: any) => {
@@ -239,7 +299,7 @@ const UIProvider = ({ children }: any) => {
                 if (item.type === 'file') {
                     files.push({ id: String(count), text: item.name, myicon: 'el-icon-star-on' });
                 } else if (item.type === 'folder') {
-                    files.push(...getNodeState(item.content));
+                    files.push(...getNodeState(item.contents));
                 }
             });
     
@@ -259,9 +319,19 @@ const UIProvider = ({ children }: any) => {
                 type: "get_files",
                 selectID: 0,
                 payload: [
-                    { id: 0, name: "New File.md", type: "file", content: "This is dummy text." },
-                    { id: 0, name: "New Folder", type: "folder", content: [
-                        { id: 0, name: "New File 2.md", type: "file", content: "This is dummy text." },
+                    {id: 0, type: 'file', name: 'New File', contents: 'This is dummy text' },
+                    {id: 1, type: 'folder', name: 'New Folder', contents: [
+                        {id: 2, type: 'file', name: 'New File 2', contents: 'This is dummy text' },
+                        {id: 3, type: 'folder', name: 'New Folder 2', contents: [
+                            {id: 4, type: 'file', name: 'New File 3', contents: 'This is dummy text' }
+                        ]},
+                        {id: 5, type: 'folder', name: 'New Folder 4', contents: [
+                            {id: 6, type: 'file', name: 'New File 4', contents: 'This is dummy text' },
+                            {id: 7, type: 'file', name: 'New File 5', contents: 'This is dummy text' },
+                            {id: 8, type: 'folder', name: 'New Folder 5', contents: [
+                                {id: 9, type: 'file', name: 'New File 6', contents: 'This is dummy text' }
+                            ]},
+                        ]},
                     ]},
                 ]
             });
@@ -273,9 +343,14 @@ const UIProvider = ({ children }: any) => {
     // sort files alphabetically and then sorts index
     useEffect(() => {
         if (indexSort == true) {
+
             dispatch({
                 type: 'sort_index',
-                payload:{EditorID:selectedEditID,setEditorID:setSelectedEditID,selectID:selectedID,setSelectID:setSelectedID}
+                payload:{
+                    editorID:selectedEditID,setEditorID:setSelectedEditID,
+                    selectID:selectedID,setSelectID:setSelectedID,
+                    selectFileLocation:fileLocation,setSelectFileLocation:setFileLocation,
+                }
             });
 
             // initial rendering of nodes
@@ -296,7 +371,9 @@ const UIProvider = ({ children }: any) => {
                                 <NotificationToggleContext.Provider value={{notifyToggle,setNotifyToggle}}>
                                     <NotificationContentContext.Provider value={{notifyContent,setNotifyContent}}>
                                         <KnowledgeGraphContext.Provider value={{nodes,setNodes}}>
-                                            {children}
+                                            <FileLocationContext.Provider value={{fileLocation,setFileLocation}}>
+                                                {children}
+                                            </FileLocationContext.Provider>
                                         </KnowledgeGraphContext.Provider>
                                     </NotificationContentContext.Provider>
                                 </NotificationToggleContext.Provider>
@@ -318,5 +395,6 @@ export function useSortIndexContext() { return useContext(IndexSortContext) };
 export function useNotifyToggleContext() { return useContext(NotificationToggleContext) };
 export function useNotifyContentContext() { return useContext(NotificationContentContext)};
 export function useKnowledgeGraphContext() { return useContext(KnowledgeGraphContext) };
+export function useFileLocationContext() { return useContext(FileLocationContext) };
 
 export default UIProvider;

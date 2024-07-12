@@ -115,7 +115,7 @@ export default function NewItem() {
                           fileContext.dispatch({
                             type:'insert_file',
                             selectID: selectionIDContext.selectedID[0],
-                            payload:{id:1000,name:newName+".md",type:"file",content:"Enter Text Here"},
+                            payload:{id:1000,name:newName+".md",type:"file",contents:"Enter Text Here"},
                           });
 
                           // sort index with new file
@@ -137,7 +137,7 @@ export default function NewItem() {
                           fileContext.dispatch({
                             type:'insert_file',
                             selectID:selectionIDContext.selectedID[0],
-                            payload:{id:0,name:newName,type:"folder",content:[]},
+                            payload:{id:0,name:newName,type:"folder",contents:[]},
                           });
 
                           // sort index with new folder

@@ -33,17 +33,13 @@ const Editor: FC<EditorProps> = ({ markdown }) => {
     }
   }, [selection.selectedEditID[0]]);
 
-  useEffect(() => {
-    selection.setSelectedEditID([selection.selectedEditID[0] as number, markdown])
-  }, [markdown])
-
   return (
     <pre>
       <MDXEditor
         ref={ref}
         markdown={markdown}
         // update selection content as markdown
-        onChange={(e: string) => selection.setSelectedEditID([selection.selectedEditID[0] as number, e])}
+        onChange={(e: string) => selection.setSelectedEditID([selection.selectedEditID[0] as number, e, selection.selectedEditID[2] as string])}
         plugins={[
           headingsPlugin(),
           toolbarPlugin({
