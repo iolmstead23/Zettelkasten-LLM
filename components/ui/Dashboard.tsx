@@ -19,7 +19,7 @@ export default function Dashboard() {
   const selectedInfo = useSelectedIDContext();
   const notifyToggle = useNotifyToggleContext();
   return (
-    <main className="xl:pl-96 max-h-full fixed">
+    <main className="xl:pl-96 max-h-full">
       {(renameToggle.renameIsOpen===true) && (
         <div>
           <RenameFile id={selectedInfo.selectedID[0] as number} name={selectedInfo.selectedID[1] as string} />
@@ -50,10 +50,10 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="block overflow-y-auto max-h-screen pt-5">
-              <div className='h-[72.5vh]'>
+              <div className='h-[72.5vh] bg-white'>
                 <EditorComp markdown='Select a file!'/>
               </div>
-              <div className='pt-2 fixed'>
+              <div className='fixed bottom-4'>
                 <FileInfoDisplay />
               </div>
             </div>

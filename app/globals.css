@@ -2,3 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 @import '@/node_modules/@mdxeditor/editor/dist/style.css';
+
+.mdxeditor {
+    @apply h-[34em] flex flex-col;
+}
+
+.mdxeditor-toolbar {
+    @apply h-[150px] overflow-hidden mb-1;
+}
+
+.mdxeditor-root-contenteditable {
+    @apply overflow-y-scroll;
+}
