@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { useFileTreeContext, useRenameToggleContext, useSelectedIDContext, useSelectedEditContext, useSortIndexContext, useNotifyToggleContext, useNotifyContentContext, useFileLocationContext, useDeleteToggleContext } from '@/components/ui/UIProvider';
+import { useRenameToggleContext, useSelectedEditContext, useSortIndexContext, useFileLocationContext, useDeleteToggleContext } from '@/components/ui/UIProvider';
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ');
@@ -12,11 +12,8 @@ export default function FileDropdown({id,data,name}:{id:number,data:string,name:
     const selectEditContext = useSelectedEditContext();
     const renameContext = useRenameToggleContext();
     const deleteContext = useDeleteToggleContext();
-    const notifyToggle = useNotifyToggleContext();
-    const notifyContent = useNotifyContentContext();
     const fileLocation = useFileLocationContext();
     const sortIndex = useSortIndexContext();
-
     return (
         <Menu as="div" className="block">
             <div>
@@ -24,7 +21,6 @@ export default function FileDropdown({id,data,name}:{id:number,data:string,name:
                     <ChevronDownIcon className="-mr-1 h-5 w-5 text-gray-400" aria-hidden="true" />
                 </Menu.Button>
             </div>
-
             <Transition
                 as={Fragment}
                 enter="transition ease-out duration-100"
@@ -43,7 +39,6 @@ export default function FileDropdown({id,data,name}:{id:number,data:string,name:
                                         active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                                         'block px-4 py-2 text-sm'
                                     )}
-
                                     onClick={() => {
                                         selectEditContext.setSelectedEditID([id,data,name]);
                                         fileLocation.setFileLocation(['']);
@@ -75,7 +70,6 @@ export default function FileDropdown({id,data,name}:{id:number,data:string,name:
                                         active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                                         'block px-4 py-2 text-sm'
                                     )}
-
                                     onClick={() => {deleteContext.setDeleteIsOpen(true);}}
                                 >
                                 Delete

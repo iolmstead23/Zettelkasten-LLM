@@ -11,25 +11,18 @@ import { useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, us
 const RenameFile = ({ name, id }: { name:string, id:number }) => {
 /** This enables us to toggle the rename modal open and close */
   const renameToggleContext: any = useRenameToggleContext();
-
   /** This enables us to intitiate an index sort */
   const sortIndex = useSortIndexContext();
-
   /** This enables the manager to read from the filetree */
   const fileContext: any = useFileTreeContext();
-
   /** This keeps track of the cancel button */
   const cancelButtonRef = useRef(null);
-
   /** newName and setNewName are used to keep track of the input's state */
   const [newName, setNewName] = useState<string>('');
-
   /** This updates the newName state whenever input has changed */
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {setNewName(event.target.value);};
-  
   /** ext is the files extension */
   const ext = name.split('.')[1];
-
   const notifyToggle = useNotifyToggleContext();
   const notifyContent = useNotifyContentContext();
 
@@ -47,7 +40,6 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
         >
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
         </Transition.Child>
-
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <Transition.Child

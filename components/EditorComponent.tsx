@@ -18,26 +18,23 @@ interface EditorProps {
   markdown: string;
   editorRef?: React.MutableRefObject<MDXEditorMethods | null>;
 };
-
 const Editor: FC<EditorProps> = ({ markdown }) => {
   const selection = useSelectedEditContext();
   const ref = useRef<MDXEditorMethods>(null)
-
 // every time a new file is selected update the editor's contents
   // there will be logic applied to this from a FileManager that can handle saves and loads
   useEffect(() => {
     const selectedMarkdown = selection.selectedEditID[1];
-
     if (typeof selectedMarkdown === 'string') {
       ref?.current?.setMarkdown(selectedMarkdown);
     }
   }, [selection.selectedEditID[0]]);
-
   return (
     <pre>
       <MDXEditor
         ref={ref}
         markdown={markdown}
+        className='relative'
         // update selection content as markdown
         onChange={(e: string) => selection.setSelectedEditID([selection.selectedEditID[0] as number, e, selection.selectedEditID[2] as string])}
         plugins={[

@@ -6,42 +6,36 @@ import { Fragment } from 'react'
 import { useFileLocationContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext } from '@/components/ui/UIProvider'
 
 export default function EditorFileOptions() {
-
     const filetreeContext: any = useFileTreeContext();
     const selectedEditID = useSelectedEditContext();
     const notifyContent = useNotifyContentContext();
     const notifyToggle = useNotifyToggleContext();
     const fileLocation = useFileLocationContext();
-
     function save(): any {
         selectedEditID.selectedEditID[0] != 0 && filetreeContext.dispatch({
           type:'save_file',
           payload:{
             id:selectedEditID.selectedEditID[0],
-            content:selectedEditID.selectedEditID[1]
+            contents:selectedEditID.selectedEditID[1]
         }});
-
         // notify user of successful save
         notifyContent.setNotifyContent(["success","Save success!"]);
         notifyToggle.setNotifyToggle(true);
     }
-
     const items:{name:string,action:()=>void}[] = [
         { name: 'Save', action: save },
         { name: 'Import', action: ()=>{}}
     ]
-
     const selectedEditName = selectedEditID.selectedEditID[2] ?? '';
-
     return (
-        <div className="inline-flex rounded-md shadow-sm">
+        <div className="inline-flex">
             <button
                 type="button"
                 className=" inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
             >
                 File Options
             </button>
-            <Menu as="div" className="relative -ml-px block">
+            <Menu as="div" className="relative -ml-px block rounded-md shadow-sm">
                 <Menu.Button className="relative z-10 inline-flex items-center rounded-r-md bg-white px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
                     <span className="sr-only">Open options</span>
                     <ChevronDownIcon aria-hidden="true" className="h-5 w-5" />
@@ -73,9 +67,8 @@ export default function EditorFileOptions() {
                     </Menu.Items>
                 </Transition>
             </Menu>
-
             <div>
-                <div className="px-5">
+                <div className="px-5 pt-2">
                 {`File Location:
                     ${(selectedEditName!='') ? " / " : ''}
                     ${fileLocation.fileLocation.map((item: any) => item ? item : '').filter(Boolean).join(' / ')}

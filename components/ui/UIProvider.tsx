@@ -1,12 +1,12 @@
 'use client'
 
 import { useUser } from '@auth0/nextjs-auth0/client';
-import React, { useState, createContext, useEffect, useContext, useReducer, use } from 'react';
+import React, { useState, createContext, useEffect, useContext, useReducer } from 'react';
 
 // Create context for file tree, selected file, and rename toggle
 const FileTreeContext = createContext({});
-const SelectedIDContext = createContext({selectedID: [0,''], setSelectedID: (e:[number,string]) => {e}});
-const SelectedEditIDContext = createContext({selectedEditID: [0,'',''], setSelectedEditID: (e:[number,string,string]) => {e}});
+const SelectedIDContext = createContext({selectedID: [-1,''], setSelectedID: (e:[number,string]) => {e}});
+const SelectedEditIDContext = createContext({selectedEditID: [-1,'',''], setSelectedEditID: (e:[number,string,string]) => {e}});
 const RenameToggleContext = createContext({renameIsOpen: false, setRenameIsOpen: (e:boolean) => {e}});
 const NewItemToggleContext = createContext({newIsOpen: false, setNewIsOpen: (e:boolean) => {e}});
 const DeleteToggleContext = createContext({deleteIsOpen: false, setDeleteIsOpen: (e:boolean) => {e}});
@@ -260,8 +260,8 @@ function reducer(state: State, action: Action): State {
 
 const UIProvider = ({ children }: any) => {
     const [state, dispatch] = useReducer(reducer, { files: [] });
-    const [selectedID, setSelectedID] = useState<[number, string]>([0,'']);
-    const [selectedEditID, setSelectedEditID] = useState<[number, string, string]>([0,'','']);
+    const [selectedID, setSelectedID] = useState<[number, string]>([-1,'']);
+    const [selectedEditID, setSelectedEditID] = useState<[number, string, string]>([-1,'','']);
     const [renameIsOpen, setRenameIsOpen] = useState<boolean>(false);
     const [newIsOpen, setNewIsOpen] = useState<boolean>(false);
     const [deleteIsOpen, setDeleteIsOpen] = useState<boolean>(false);
@@ -320,7 +320,7 @@ const UIProvider = ({ children }: any) => {
                 type: "get_files",
                 selectID: 0,
                 payload: [
-                    {id: 0, type: 'file', name: 'New File.d', contents: 'This is dummy text' },
+                    {id: 0, type: 'file', name: 'New File.md', contents: 'This is dummy text' },
                     {id: 1, type: 'folder', name: 'New Folder', contents: [
                         {id: 2, type: 'file', name: 'New File 2.md', contents: 'This is dummy text' },
                         {id: 3, type: 'folder', name: 'New Folder 2', contents: [

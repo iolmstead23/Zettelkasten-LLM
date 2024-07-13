@@ -1,7 +1,7 @@
 export default function FileInfoDisplay() {
 
     return (
-        <div>
+        <div className="bottom-10">
             Last Save:
         </div>
     )
