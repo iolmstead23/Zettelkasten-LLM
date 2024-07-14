@@ -90,7 +90,7 @@ const NotificationContentContext = createContext<NotificationContentState | unde
 const KnowledgeGraphContext = createContext<KnowledgeGraphState | undefined>(undefined);
 const FileLocationContext = createContext<FileLocationState | undefined>(undefined);
 
-/** This reducer function is responsible for managing the filetree's state */
+/** This reducer function is responsible for managing the filetree state */
 function reducer(state: State, action: Action): State {
 
     /** This renames file and folders */
@@ -168,20 +168,45 @@ function reducer(state: State, action: Action): State {
         });
     }
 
-    /** This deletes files and folders */
+    /** This deletes files and folders (id,setEditor) */
     function delete_file(state: State, action: Action) {
 
-        const id = action.payload?.id;
+        const itemID: number = action.payload?.id;
+        const editorID: number = action.payload?.editorID[0];
+        const setEditorID: (e:[number,string,string])=>{e:[number,string,string]} = action.payload?.setEditor;
+
+        const checkEditor = (folders:any) => {
+            (folders).forEach((item: any) => {
+                if (item.type === "file") {
+                    if (item.id === editorID) {
+                        // if the file being edited is inside of a folder marked for deleting then reset editor
+                        setEditorID([-1,'','']);
+                    }
+                } else if (item.type === "folder") {
+                    // dig through folder
+                    checkEditor(item.contents);
+                }
+            });
+        }
+
         return state.files.map((item: any):any => {
             if (item.type === "file") {
-                // delete file
-                return (item.id === id) ? false : item;
+                if (item.id == itemID) {
+                    // reset editor if editing file is going to be deleted
+                    (editorID == itemID) ? setEditorID([-1,'','']) : null;
+                    // delete the file
+                    return (item.id === itemID) ? false : item;
+                }
+                
             } else if (item.type === "folder") {
 
-                if (item.id == id) {
+                if (item.id == itemID) {
+
+                    // first reset the editor if file is going to be deleted
+                    checkEditor(item.contents);
+
                     // delete entire folder
-                    // TODO close edit file if its marked for deletion
-                    return (item.id === id) ? false : item;
+                    return (item.id === itemID) ? false : item;
                 } else {
                     // continue to drill through folder
                     return {
@@ -191,7 +216,7 @@ function reducer(state: State, action: Action): State {
                 }
             }
 
-            // return file as normal (not intended for deletion)
+            // return item as normal
             return item;
         }).filter(Boolean);
     }
@@ -361,7 +386,7 @@ const UIProvider = ({ children }: any) => {
     }
 
     /** generates an array of nodes to plot on the knowledge graph. This is called when filetree is reindexed */
-    function getNodes(data: FileTreeObject[]): any {
+    function getNodes(data: FileTreeObject[]): Object[] {
         let count: number = 0;
     
         function getNodeState(data: FileTreeObject[]): any[] {
@@ -434,13 +459,13 @@ const UIProvider = ({ children }: any) => {
 
     // This sends the state data down to the child components
     return (
-        <FileTreeContext.Provider value={{state, dispatch}}>
+        <FileTreeContext.Provider value={{state,dispatch}}>
             <SelectedIDContext.Provider value={{selectedID, setSelectedID}}>
-                <SelectedEditIDContext.Provider value={{selectedEditID, setSelectedEditID}}>
-                    <RenameToggleContext.Provider value={{renameIsOpen, setRenameIsOpen}}>
-                        <NewItemToggleContext.Provider value={{newIsOpen, setNewIsOpen}}>
+                <SelectedEditIDContext.Provider value={{selectedEditID,setSelectedEditID}}>
+                    <RenameToggleContext.Provider value={{renameIsOpen,setRenameIsOpen}}>
+                        <NewItemToggleContext.Provider value={{newIsOpen,setNewIsOpen}}>
                             <DeleteToggleContext.Provider value={{deleteIsOpen,setDeleteIsOpen}}>
-                                <IndexSortContext.Provider value={{indexSort, setIndexSort}}>
+                                <IndexSortContext.Provider value={{indexSort,setIndexSort}}>
                                     <NotificationToggleContext.Provider value={{notifyToggle,setNotifyToggle}}>
                                         <NotificationContentContext.Provider value={{notifyContent,setNotifyContent}}>
                                             <KnowledgeGraphContext.Provider value={{nodes,setNodes}}>
@@ -496,7 +521,7 @@ export function useRenameToggleContext() {
     return context;
 }
 
-/** This lets other child components toggle the create item dialog on and off */
+/** This lets other child components toggle the create dialog on and off */
 export function useNewItemToggleContext() {
     const context = useContext(NewItemToggleContext);
     if (context === undefined) {
@@ -514,7 +539,7 @@ export function useDeleteToggleContext() {
     return context;
 }
 
-/** This lets other child components trigger index event */
+/** This lets other child components trigger an index sort */
 export function useSortIndexContext() {
     const context = useContext(IndexSortContext);
     if (context === undefined) {
@@ -532,7 +557,7 @@ export function useNotifyToggleContext() {
     return context;
 }
 
-/** This lets other child components provide the notification content */
+/** This lets other child components provide the notification box content */
 export function useNotifyContentContext() {
     const context = useContext(NotificationContentContext);
     if (context === undefined) {
@@ -558,6 +583,5 @@ export function useFileLocationContext() {
     }
     return context;
 }
-
 
 export default UIProvider;

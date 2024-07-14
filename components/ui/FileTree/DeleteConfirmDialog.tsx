@@ -3,7 +3,7 @@
 import { Fragment, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useDeleteToggleContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useDeleteToggleContext, useFileLocationContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
 /** This file is responsible for providing an interface to delete files */
 const DeleteItem = ({ id }: { id: number }) => {
@@ -19,6 +19,8 @@ const DeleteItem = ({ id }: { id: number }) => {
   const notifyToggle = useNotifyToggleContext();
   /** This keeps track of the notification contents */
   const notifyContent = useNotifyContentContext();
+  /** This keeps track of edited file */
+  const editorID = useSelectedEditContext();
   return (
     <Transition.Root show={deleteToggleContext.deleteIsOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => deleteToggleContext.setDeleteIsOpen(false)}>
@@ -51,7 +53,7 @@ const DeleteItem = ({ id }: { id: number }) => {
                   </div>
                   <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                     <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                      <h1 className='text-red-600'>Warning: This may delete entire subfolders</h1>
+                      <h1 className='text-red-600'>Warning! This may delete entire subfolders.</h1>
                       <h1>Are you sure you want to delete this item?</h1>
                     </Dialog.Title>
                     <div className="mt-2">
@@ -71,7 +73,7 @@ const DeleteItem = ({ id }: { id: number }) => {
                         // delete
                         fileContext.dispatch({
                             type:'delete_file',
-                            payload:{id:id}
+                            payload:{id:id,editorID:editorID.selectedEditID,setEditor:editorID.setSelectedEditID}
                         });
                         // notify user of successful save
                         notifyContent.setNotifyContent(["success", "Delete success!"]);
