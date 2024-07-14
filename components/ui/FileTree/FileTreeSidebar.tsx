@@ -6,7 +6,7 @@ import styledComponents from "styled-components";
 import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai";
 import { DiJavascript1, DiCss3Full, DiHtml5, DiReact, DiMarkdown } from "react-icons/di";
 import { useFileTreeContext, useSelectedIDContext, useNewItemToggleContext } from "@/components/ui/UIProvider";
-import EmptyFiles from "@/components/ui/Files";
+import EmptyFiles from "@/components/ui/EmptyFiles";
 import FileDropdown from "@/components/ui/FileTree/FileDropdown";
 import FolderDropdown from "@/components/ui/FileTree/FolderDropdown";
 
@@ -72,20 +72,21 @@ const Collapsible: React.FC<CollapsableComponent> = styledComponents.div`
 // File component
 const File = ({ id, name, selection, contents }:{ id:number, name:string, selection:any, contents:string }) => {
 
-  // Extract file extension
+  /** Extract file extension */
   const ext = name.split(".")[1];
 
-  // Function to handle file selection
+  /** Function to handle file selection */
   const handleSelection = () => { selection.setSelectedID([id,name]); };
 
-  // Check if file is selected
+  /** Check if file is selected */
   const isSelected: boolean = (selection.selectedID[0]==id) ? true : false;
 
   // Render file component
   return (
     <div
       onContextMenu={(e) => {
-        e.preventDefault(); // prevent the default behavior when right clicked
+        // prevent the default behavior when right clicked
+        e.preventDefault();
       }}
     >
       <StyledFile>
@@ -100,24 +101,27 @@ const File = ({ id, name, selection, contents }:{ id:number, name:string, select
               {name}
             </span>
           </div>
-          {/* Render file dropdown menu if selected */}
-          {isSelected && (
-            // this keeps track of how far left the dropdown is from the item
-            <div className="ml-10">
-              <FileDropdown id={id} data={contents} name={name} />
-            </div>
-            )}
+          
+          {
+            /* Render file dropdown menu if selected */
+            isSelected && (
+              // this keeps track of how far left the dropdown is from the item
+              <div className="ml-10">
+                <FileDropdown id={id} data={contents} name={name} />
+              </div>
+            )
+          }
         </div>
       </StyledFile>
     </div>
   );
 };
 
-// Folder component
+/** Folder component */
 const Folder = ({ id, name, selection, children }: {id:number, name:string, selection:any, children:any}) => {
   const [isOpen, setIsOpen] = useState<boolean | number>(+false);
 
-  // Function to handle file selection
+  /** Function to handle file selection */
   const handleSelection = () => { selection.setSelectedID([id,name]); };
 
   // Check if folder is selected
@@ -126,9 +130,10 @@ const Folder = ({ id, name, selection, children }: {id:number, name:string, sele
   // Render folder component
   return (
     <div
-      onContextMenu={(e) => {
-        e.preventDefault(); // prevent the default behavior when right clicked
-      }}
+    onContextMenu={(e) => {
+      // prevent the default behavior when right clicked
+      e.preventDefault();
+    }}
     >
       <StyledFolder>
         <div className="flex items-center">
@@ -141,13 +146,15 @@ const Folder = ({ id, name, selection, children }: {id:number, name:string, sele
             {name}
             </span>
           </div>
-            {/* Render file dropdown menu if selected */}
-            {isSelected && (
-              // this keeps track of how far left the dropdown is from the item
-              <div className="ml-10">
-                <FolderDropdown isOpen={isOpen} setIsOpen={setIsOpen} />
-              </div>
-            )}
+            {
+              /* Render file dropdown menu if selected */
+              isSelected && (
+                // this keeps track of how far left the dropdown is from the item
+                <div className="ml-10">
+                  <FolderDropdown isOpen={isOpen} setIsOpen={setIsOpen} />
+                </div>
+              )
+            }
         </div>
         {/* Render folder contents */}
         <Collapsible isopen={isOpen}>
@@ -158,18 +165,19 @@ const Folder = ({ id, name, selection, children }: {id:number, name:string, sele
   );
 };
 
-// Tree component
+/** Tree component */
 const Tree = ({ children }: any) => {
   return <StyledTree>{children}</StyledTree>;
 };
 
-// Root component to render file tree
+/** Root component to render file tree */
 const Root = ({ data, selection }: any) => {
 
   return (
     <div
       onContextMenu={(e) => {
-        e.preventDefault(); // prevent the default behavior when right clicked
+        // prevent the default behavior when right clicked
+        e.preventDefault();
       }}
     >
       {/* Map over file tree data and render file or folder components */}
@@ -215,7 +223,7 @@ export default function FileTreeSidebar() {
         <div className="pl-5 flex items-center"
           onClick={()=>{
             // deselect any item and open new item modal
-            selection?.setSelectedID([0,'']);
+            selection?.setSelectedID([-1,'']);
             newItemToggle?.setNewIsOpen(true);
           }}>
             Create New
@@ -230,17 +238,19 @@ export default function FileTreeSidebar() {
           </Tree>
         )}
       </div>
-
-      {/* Render empty files component if no files exist */}
-      {!files && (
-        <div
-          onContextMenu={(e) => {
-            e.preventDefault(); // prevent the default behaviour when right clicked
-          }}
-        >
-          <EmptyFiles />
-        </div>
-      )}
+      {
+        /* Render empty files component if no files exist */
+        !files && (
+          <div
+            onContextMenu={(e) => {
+              // prevent the default behaviour when right clicked
+              e.preventDefault();
+            }}
+          >
+            <EmptyFiles />
+          </div>
+        )
+      }
     </div>
   );
 };

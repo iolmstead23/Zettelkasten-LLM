@@ -22,11 +22,12 @@ export default function EditorFileOptions() {
         notifyContent.setNotifyContent(["success","Save success!"]);
         notifyToggle.setNotifyToggle(true);
     }
+    /** Sets the File Options dropdown items */
     const items:{name:string,action:()=>void}[] = [
         { name: 'Save', action: save },
         { name: 'Import', action: ()=>{}}
     ]
-    const selectedEditName = selectedEditID.selectedEditID[2] ?? '';
+    const selectedEditName: string = selectedEditID.selectedEditID[2] as string ?? '';
     return (
         <div className="inline-flex">
             <button
@@ -69,10 +70,14 @@ export default function EditorFileOptions() {
             </Menu>
             <div>
                 <div className="px-5 pt-2">
-                {`File Location:
-                    ${(selectedEditName!='') ? " / " : ''}
-                    ${fileLocation.fileLocation.map((item: any) => item ? item : '').filter(Boolean).join(' / ')}
-                    ${(selectedEditID.selectedEditID[0]!=1) ? " / " : ''}
+                {
+                    // This displays the edited files location in the filetree
+                    `File Location /
+                    ${fileLocation.fileLocation.map((item: any) => (
+                        item &&
+                        fileLocation.fileLocation 
+                    ) ? item : '').filter(Boolean).join(' / ')}
+                    ${(fileLocation.fileLocation.length>0) ? " / " : ''}
                     ${selectedEditName}
                 `}
                 </div>

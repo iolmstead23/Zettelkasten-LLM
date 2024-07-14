@@ -1,22 +1,21 @@
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { useFileTreeContext, useNewItemToggleContext, useRenameToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useDeleteToggleContext, useNewItemToggleContext, useRenameToggleContext } from '@/components/ui/UIProvider';
 
+/** I have no idea what this does */
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ')
 };
 
 /** This keeps track of the dropdown options that allow FileTree actions */
 export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | number, setIsOpen: (e:boolean | number)=>void}) {
-    
-    const filetreeContext: any = useFileTreeContext();
-    const selectionIDContext = useSelectedIDContext();
+    /** This lets us toggle the rename dialog on and off */
     const renameContext = useRenameToggleContext();
+    /** This provides the content for the rename dialog */
     const newContext = useNewItemToggleContext();
-    const sortIndex = useSortIndexContext();
-
-    // TODO: Enable folder renaming and deletion
+    /** This lets us toggle the delete dialog on and off */
+    const deleteContext = useDeleteToggleContext();
 
     return (
         <Menu as="div" className="block">
@@ -89,15 +88,7 @@ export default function FolderDropdown({isOpen, setIsOpen}:{isOpen: boolean | nu
                                     'block px-4 py-2 text-sm'
                                 )}
 
-                                onClick={() => {
-                                    filetreeContext.dispatch({
-                                    type:'delete_file',
-                                    payload:{id:selectionIDContext.selectedID[0], name:selectionIDContext.selectedID[1]}
-                                    });
-
-                                    // sort index with new tree
-                                    sortIndex.setIndexSort(true);
-                                }}
+                                onClick={() => {deleteContext.setDeleteIsOpen(true);}}
                                 >
                                 Delete
                                 </span>

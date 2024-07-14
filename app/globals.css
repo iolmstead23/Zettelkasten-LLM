@@ -12,5 +12,5 @@
 }
 
 .mdxeditor-root-contenteditable {
-    @apply overflow-y-scroll;
+    @apply overflow-y-auto overscroll-x-contain;
 }

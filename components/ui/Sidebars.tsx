@@ -4,10 +4,7 @@ import {
     CalendarIcon,
     ChartPieIcon,
     ChartBarIcon,
-    DocumentDuplicateIcon,
-    FolderIcon,
     HomeIcon,
-    UsersIcon,
     Bars3Icon,
 } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
@@ -19,23 +16,24 @@ import Image from 'next/image';
 import Search from '@/components/ui/Searchbar';
 
 const navigation = [
-    { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
+    // Turn on more features as they are developed
     //{ name: 'Team', href: '#', icon: UsersIcon, current: false },
     //{ name: 'Projects', href: '#', icon: FolderIcon, current: false },
+    //{ name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
+    { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
     { name: 'Calendar', href: '/calender', icon: CalendarIcon, current: false },
-    //{ name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
     { name: 'Reports', href: '/analytics', icon: ChartBarIcon, current: false },
-    //{ name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
     { name: 'Graph', href: '/knowledge-graph', icon: ChartPieIcon, current: false },
 ];
 
+/** I have no idea what this does */
 function classNames(...classes:any) {
     return classes.filter(Boolean).join(' ')
 };
 
 /** The sidebar is responsive and will hide on mobile */
 export default function Sidebars() {
-
+    /** This allows us to toggle the sidebar open and close */
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
     return (

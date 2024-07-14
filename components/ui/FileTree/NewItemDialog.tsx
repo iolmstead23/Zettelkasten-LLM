@@ -5,9 +5,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useFileTreeContext, useNewItemToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
-/**
- * This file is responsible for providing an interface to create new items
-*/
+/** This file is responsible for providing an interface to create new items */
 export default function NewItem() {
 
   // TODO: Reject names if they already exist in the file tree. Force unique names!
@@ -115,7 +113,7 @@ export default function NewItem() {
                           fileContext.dispatch({
                             type:'insert_file',
                             selectID: selectionIDContext.selectedID[0],
-                            payload:{id:1000,name:newName+".md",type:"file",contents:"Enter Text Here"},
+                            payload:{id:0,name:newName+".md",type:"file",contents:"Enter Text Here"},
                           });
 
                           // sort index with new file

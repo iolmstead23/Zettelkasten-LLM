@@ -3,31 +3,22 @@
 import { useUser } from '@auth0/nextjs-auth0/client';
 import React, { useState, createContext, useEffect, useContext, useReducer } from 'react';
 
-// Create context for file tree, selected file, and rename toggle
-const FileTreeContext = createContext({});
-const SelectedIDContext = createContext({selectedID: [-1,''], setSelectedID: (e:[number,string]) => {e}});
-const SelectedEditIDContext = createContext({selectedEditID: [-1,'',''], setSelectedEditID: (e:[number,string,string]) => {e}});
-const RenameToggleContext = createContext({renameIsOpen: false, setRenameIsOpen: (e:boolean) => {e}});
-const NewItemToggleContext = createContext({newIsOpen: false, setNewIsOpen: (e:boolean) => {e}});
-const DeleteToggleContext = createContext({deleteIsOpen: false, setDeleteIsOpen: (e:boolean) => {e}});
-const IndexSortContext = createContext({indexSort: false, setIndexSort: (e:boolean)=> {e}});
-const NotificationToggleContext = createContext({notifyToggle: false, setNotifyToggle: (e:boolean)=> {e}});
-const NotificationContentContext = createContext({notifyContent:['',''], setNotifyContent: (e:[string,string]) => {e}});
-const KnowledgeGraphContext = createContext({nodes:[{}], setNodes: (e:Object[]) => {e}});
-const FileLocationContext = createContext({fileLocation:[''], setFileLocation: (e:[string]) => {e}});
-
 interface State {
     files: FileTreeObject[];
-    start_count?: number;
 };
 
 interface Action {
-    type: 'get_files' | 'insert_file' | 'rename_file' | 'delete_file' | 'sort_index' | 'save_file' | 'get_nodes';
+    type: 'get_files' | 'insert_file' | 'rename_file' | 'delete_file' | 'sort_index' | 'save_file';
     selectID?: number;
     payload?: any;
     count?: number;
     fileFound?: boolean;
 };
+
+interface FileTreeState {
+    state: State;
+    dispatch: React.Dispatch<Action>;
+}
 
 interface FileTreeObject {
     id: number;
@@ -36,8 +27,73 @@ interface FileTreeObject {
     contents: FileTreeObject[] | string;
 };
 
+interface SelectedIDState {
+    selectedID: [number, string];
+    setSelectedID: (e: [number, string]) => void;
+}
+
+interface SelectedEditIDState {
+    selectedEditID: [number, string, string];
+    setSelectedEditID: (e: [number, string, string]) => void;
+}
+
+interface RenameToggleState {
+    renameIsOpen: boolean;
+    setRenameIsOpen: (e: boolean) => void;
+}
+
+interface NewItemToggleState {
+    newIsOpen: boolean;
+    setNewIsOpen: (e: boolean) => void;
+}
+
+interface DeleteToggleState {
+    deleteIsOpen: boolean;
+    setDeleteIsOpen: (e: boolean) => void;
+}
+
+interface IndexSortState {
+    indexSort: boolean;
+    setIndexSort: (e: boolean) => void;
+}
+
+interface NotificationToggleState {
+    notifyToggle: boolean;
+    setNotifyToggle: (e: boolean) => void;
+}
+
+interface NotificationContentState {
+    notifyContent: [string, string];
+    setNotifyContent: (e: [string, string]) => void;
+}
+
+interface KnowledgeGraphState {
+    nodes: Object[];
+    setNodes: (e: Object[]) => void;
+}
+
+interface FileLocationState {
+    fileLocation: string[];
+    setFileLocation: (e: string[]) => void;
+}
+
+// Create context for file tree, selected file, and rename toggle
+const FileTreeContext = createContext<FileTreeState | undefined>(undefined);
+const SelectedIDContext = createContext<SelectedIDState | undefined>(undefined);
+const SelectedEditIDContext = createContext<SelectedEditIDState | undefined>(undefined);
+const RenameToggleContext = createContext<RenameToggleState | undefined>(undefined);
+const NewItemToggleContext = createContext<NewItemToggleState | undefined>(undefined);
+const DeleteToggleContext = createContext<DeleteToggleState | undefined>(undefined);
+const IndexSortContext = createContext<IndexSortState | undefined>(undefined);
+const NotificationToggleContext = createContext<NotificationToggleState | undefined>(undefined);
+const NotificationContentContext = createContext<NotificationContentState | undefined>(undefined);
+const KnowledgeGraphContext = createContext<KnowledgeGraphState | undefined>(undefined);
+const FileLocationContext = createContext<FileLocationState | undefined>(undefined);
+
+/** This reducer function is responsible for managing the filetree's state */
 function reducer(state: State, action: Action): State {
 
+    /** This renames file and folders */
     function rename_file(state: State, action: Action): any {
 
         const id: number = action.payload?.id!;
@@ -70,6 +126,35 @@ function reducer(state: State, action: Action): State {
         });
     }
 
+    /** This creates both files and folders */
+    function create_file(state: State, action: Action) {
+
+        function updateFolderContent(files: any[], index: number, payload: any): any[] {
+            return files.map((item: any) => {
+                if (item.type === 'folder') {
+                    if (item.id == index) {
+                        const updatedFolder = {...item, contents:[...item.contents, payload]};
+                        return updatedFolder;
+                    } else {
+                        const updatedContent = updateFolderContent(item.contents, index, payload);
+                        return { ...item, contents: updatedContent };
+                    }
+                }
+                return item;
+            });
+        }
+
+        // if no selection then insert at bottom of root
+        if (action.selectID == -1) {
+            return [...state.files, action.payload];
+        }
+        // else dig through filetree until selected folder is found
+        else {
+            return updateFolderContent(state.files, action.selectID!, action.payload);
+        }
+    }
+
+    /** This saves file contents */
     function save_file(state: State, action: Action): any {
         return (state.files).map((item: any) => {
             if (item.type === "file") {
@@ -83,23 +168,52 @@ function reducer(state: State, action: Action): State {
         });
     }
 
+    /** This deletes files and folders */
+    function delete_file(state: State, action: Action) {
+
+        const id = action.payload?.id;
+        return state.files.map((item: any):any => {
+            if (item.type === "file") {
+                // delete file
+                return (item.id === id) ? false : item;
+            } else if (item.type === "folder") {
+
+                if (item.id == id) {
+                    // delete entire folder
+                    // TODO close edit file if its marked for deletion
+                    return (item.id === id) ? false : item;
+                } else {
+                    // continue to drill through folder
+                    return {
+                        ...item,
+                        contents: delete_file({files: item.contents}, action)
+                    };
+                }
+            }
+
+            // return file as normal (not intended for deletion)
+            return item;
+        }).filter(Boolean);
+    }
+
+    /** This reindexes the filetree's files and folders. This is the most important function. */
     function sort_index(state: State, action: Action): State {
         // Initialize count with the action count or 0
         action.count = action.count ?? 0;
-        
         action.fileFound = false;
 
+        /** This alphabetizes the filetrees in their folder before reindexing begins */
         const alphabetizeFiles = (files: any[]): any[] =>{
-            // create sorted list of items in current directory
+            /** create sorted list of items in current directory */
             const sorted_dir = (files: any) => files.sort(function(a:any, b: any) {
                 return a.name.localeCompare(b.name);
             });
 
-            // sort the current directory
+            /** sort the current directory */
             const sorted_root: any = sorted_dir(files);
 
             return sorted_root.map((item: any) => {
-                // dig through directory of item if folder
+                // dig through directory of item if item is folder
                 if (item.type == 'folder') {
                     return {...item, contents: alphabetizeFiles(item.contents)};
                 }
@@ -109,12 +223,14 @@ function reducer(state: State, action: Action): State {
             })
         }
 
+        //** his keeps track of the folder directory of the file being edited */
         function getFilePath(
             fileTreeObjects: FileTreeObject[],
             selectedId: number
         ): string[] {
             let fileFound = false;
             let filePath: string[] = [];
+            /** loop through filetree and create an array of folders (this can be reduced later) */
             const mapFileTree = (objects: FileTreeObject[]): string[] => {
                 function mapFolders(objects: FileTreeObject[]): string[] {
                     objects.forEach((obj: FileTreeObject): any => {
@@ -138,9 +254,11 @@ function reducer(state: State, action: Action): State {
             }
             return mapFileTree(fileTreeObjects);
         }
-    
+        
+        /** This sorts through the alphabetized files and assigns them an incremental index number */
         function sortFiles(files: FileTreeObject[], action: Action): FileTreeObject[] {
 
+            // This sets the context for the sort function
             const editorID = action.payload?.editorID;
             const setEditorID = action.payload?.setEditorID!;
             const selectID = action.payload?.selectID;
@@ -148,26 +266,32 @@ function reducer(state: State, action: Action): State {
             const setFileLocation = action.payload?.setSelectFileLocation!;
 
             let fileMap: any[] = [];
-        
+            
+            // map through the tree using recursion on folders. Returns indexed filetree
             fileMap = files.map((item: FileTreeObject) => {
                 if (item.type === 'file') {
-                    action.count! += 1; // Increment count for files
+                    // Increment count for files
+                    action.count! += 1;
         
-                    // Update editor and select IDs if they match the current item ID
+                    // Update editor
                     if (editorID && editorID[0] == item.id) {
                         setEditorID([action.count!, editorID[1], editorID[2]]);
                     }
-        
+                    
+                    // Update filetree selection
                     if (selectID && selectID[0] == item.id) {
                         setSelectID([action.count as number, selectID[1], selectID[2]]);
                     }
-        
-                    const updatedFile = { ...item, id: action.count }; // Update file with new ID
+                    
+                    /** Update file with new ID */
+                    const updatedFile = { ...item, id: action.count };
                     return updatedFile;
                 } else if (item.type === 'folder') {
-                    const currentCount = action.count! + 1; // Store current count for folder ID
+                    // Store current count for folder ID. We +1 count for files AND folders
                     action.count! += 1;
-                    const sortedContent = sortFiles([...item.contents as FileTreeObject[]], action); // Recursively sort folder contents
+                    const currentCount = action.count!;
+                    /** Recursively sort folder contents */
+                    const sortedContent = sortFiles([...item.contents as FileTreeObject[]], action);
         
                     return {
                         ...item,
@@ -185,59 +309,6 @@ function reducer(state: State, action: Action): State {
     
         // Return alphabetized files with sorted indexes
         return {files: sortFiles(alphabetizeFiles(state.files), action)};
-    }
-
-    function delete_file(state: State, action: Action) {
-
-        const id = action.payload?.id;
-        return state.files.map((item: any):any => {
-            if (item.type === "file") {
-                // delete file
-                return (item.id === id) ? false : item;
-            } else if (item.type === "folder") {
-
-                if (item.id == id) {
-                    // delete entire folder
-                    return (item.id === id) ? false : item;
-                } else {
-                    // continue to drill through folder
-                    return {
-                        ...item,
-                        contents: delete_file({files: item.contents}, action)
-                    };
-                }
-            }
-
-            // return file as normal (not intended for deletion)
-            return item;
-        }).filter(Boolean);
-    }
-
-    function create_file(state: State, action: Action) {
-
-        function updateFolderContent(files: any[], index: number, payload: any): any[] {
-            return files.map((item: any) => {
-                if (item.type === 'folder') {
-                    if (item.id == index) {
-                        const updatedFolder = {...item, contents:[...item.contents, payload]};
-                        return updatedFolder;
-                    } else {
-                        const updatedContent = updateFolderContent(item.contents, index, payload);
-                        return { ...item, contents: updatedContent };
-                    }
-                }
-                return item;
-            });
-        }
-
-        // if no selection then insert at bottom of root
-        if (action.selectID == 0) {
-            return [...state.files, action.payload];
-        }
-        // else dig through filetree until selected folder is found
-        else {
-            return updateFolderContent(state.files, action.selectID!, action.payload);
-        }
     }
     
     switch (action.type) {
@@ -259,20 +330,22 @@ function reducer(state: State, action: Action): State {
 }
 
 const UIProvider = ({ children }: any) => {
+
     const [state, dispatch] = useReducer(reducer, { files: [] });
-    const [selectedID, setSelectedID] = useState<[number, string]>([-1,'']);
-    const [selectedEditID, setSelectedEditID] = useState<[number, string, string]>([-1,'','']);
+
+    const [fileLocation, setFileLocation] = useState<string[]>(['']);
+    const [nodes, setNodes] = useState<Object[]>([{}]);
+    const [selectedID, setSelectedID] = useState<[number, string]>([-1, '']);
+    const [selectedEditID, setSelectedEditID] = useState<[number, string, string]>([-1, '', '']);
     const [renameIsOpen, setRenameIsOpen] = useState<boolean>(false);
     const [newIsOpen, setNewIsOpen] = useState<boolean>(false);
     const [deleteIsOpen, setDeleteIsOpen] = useState<boolean>(false);
     const [indexSort, setIndexSort] = useState<boolean>(false);
     const [notifyToggle, setNotifyToggle] = useState<boolean>(false);
-    const [notifyContent, setNotifyContent] = useState(['','']);
-    const [nodes, setNodes] = useState<Object[]>([{}]);
-    const [fileLocation,setFileLocation] = useState<[string]>(['']);
+    const [notifyContent, setNotifyContent] = useState<[string, string]>(['', '']);
     const { user } = useUser();
 
-    // grabs data from database
+    /** grabs data from database */
     const getData = async () => {
         const response = await fetch("/api/db", { method: 'GET' });
         if (response.ok) {
@@ -287,6 +360,7 @@ const UIProvider = ({ children }: any) => {
         }
     }
 
+    /** generates an array of nodes to plot on the knowledge graph. This is called when filetree is reindexed */
     function getNodes(data: FileTreeObject[]): any {
         let count: number = 0;
     
@@ -310,6 +384,7 @@ const UIProvider = ({ children }: any) => {
         return getNodeState(data);
     }    
 
+    // If user state changes then change the filetree state
     useEffect(() => {
         // grab data from database if user is logged in
         if (user) {
@@ -331,13 +406,15 @@ const UIProvider = ({ children }: any) => {
             });
         }
 
+        // Initial sort
         setIndexSort(true);
     }, [user])
     
-    // sort files alphabetically and then sorts index
+    // triggers on indexSort toggle change
     useEffect(() => {
         if (indexSort == true) {
 
+            // Tells the reducer function that the filetree needs to be resorted
             dispatch({
                 type: 'sort_index',
                 payload:{
@@ -355,6 +432,7 @@ const UIProvider = ({ children }: any) => {
         }
     }, [indexSort]);
 
+    // This sends the state data down to the child components
     return (
         <FileTreeContext.Provider value={{state, dispatch}}>
             <SelectedIDContext.Provider value={{selectedID, setSelectedID}}>
@@ -382,16 +460,104 @@ const UIProvider = ({ children }: any) => {
     );
 };
 
-export function useFileTreeContext() { return useContext(FileTreeContext) };
-export function useSelectedIDContext() { return useContext(SelectedIDContext) };
-export function useSelectedEditContext() { return useContext(SelectedEditIDContext) };
-export function useRenameToggleContext() { return useContext(RenameToggleContext) };
-export function useNewItemToggleContext() { return useContext(NewItemToggleContext) };
-export function useDeleteToggleContext() { return useContext(DeleteToggleContext)};
-export function useSortIndexContext() { return useContext(IndexSortContext) };
-export function useNotifyToggleContext() { return useContext(NotificationToggleContext) };
-export function useNotifyContentContext() { return useContext(NotificationContentContext)};
-export function useKnowledgeGraphContext() { return useContext(KnowledgeGraphContext) };
-export function useFileLocationContext() { return useContext(FileLocationContext) };
+/** This lets other child components edit and change filetree state */
+export function useFileTreeContext() {
+    const context = useContext(FileTreeContext);
+    if (context === undefined) {
+        throw new Error('useFileTreeContext must be used within a FileTreeContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components change the filetree selection */
+export function useSelectedIDContext() {
+    const context = useContext(SelectedIDContext);
+    if (context === undefined) {
+        throw new Error('useSelectedIDContext must be used within a SelectedIDContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components change the editor selection */
+export function useSelectedEditContext() {
+    const context = useContext(SelectedEditIDContext);
+    if (context === undefined) {
+        throw new Error('useSelectedEditContext must be used within a SelectedEditIDContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components toggle the rename dialog on and off */
+export function useRenameToggleContext() {
+    const context = useContext(RenameToggleContext);
+    if (context === undefined) {
+        throw new Error('useRenameToggleContext must be used within a RenameToggleContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components toggle the create item dialog on and off */
+export function useNewItemToggleContext() {
+    const context = useContext(NewItemToggleContext);
+    if (context === undefined) {
+        throw new Error('useNewItemToggleContext must be used within a NewItemToggleContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components toggle the delete dialog on and off */
+export function useDeleteToggleContext() {
+    const context = useContext(DeleteToggleContext);
+    if (context === undefined) {
+        throw new Error('useDeleteToggleContext must be used within a DeleteToggleContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components trigger index event */
+export function useSortIndexContext() {
+    const context = useContext(IndexSortContext);
+    if (context === undefined) {
+        throw new Error('useSortIndexContext must be used within a IndexSortContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components toggle notification box on and off */
+export function useNotifyToggleContext() {
+    const context = useContext(NotificationToggleContext);
+    if (context === undefined) {
+        throw new Error('useNotifyToggleContext must be used within a NotificationToggleContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components provide the notification content */
+export function useNotifyContentContext() {
+    const context = useContext(NotificationContentContext);
+    if (context === undefined) {
+        throw new Error('useNotifyContentContext must be used within a NotificationContentContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components manage the Knowledge Graph state */
+export function useKnowledgeGraphContext() {
+    const context = useContext(KnowledgeGraphContext);
+    if (context === undefined) {
+        throw new Error('useKnowledgeGraphContext must be used within a KnowledgeGraphContextProvider');
+    }
+    return context;
+}
+
+/** This lets other child components to set the edited files subdirectory folder */
+export function useFileLocationContext() {
+    const context = useContext(FileLocationContext);
+    if (context === undefined) {
+        throw new Error('useFileLocationContext must be used within a FileLocationContextProvider');
+    }
+    return context;
+}
+
 
 export default UIProvider;

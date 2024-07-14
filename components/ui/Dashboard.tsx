@@ -13,10 +13,15 @@ import DeleteItem from '@/components/ui/FileTree/DeleteConfirmDialog';
 const EditorComp = dynamic(() => import('@/components/EditorComponent'), { ssr: false });
 /** This is the main Dashboard component */
 export default function Dashboard() {
+  /** This lets us turn the rename dialog on and off */
   const renameToggle = useRenameToggleContext();
+  /** This lets us turn the delete dialog on and off */
   const deleteToggle = useDeleteToggleContext();
+  /** This lets us turn the new item dialog on and off */
   const newItemToggle = useNewItemToggleContext();
+  /** This keeps track of which item is selected on the filetree */
   const selectedInfo = useSelectedIDContext();
+  /** This allows us to trigger a notification */
   const notifyToggle = useNotifyToggleContext();
   return (
     <main className="xl:pl-96 max-h-full">
@@ -61,7 +66,8 @@ export default function Dashboard() {
           <aside
             className="absolute bottom-0 left-20 top-16 hidden w-96 overflow-y-auto border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block"
             onContextMenu={(e) => {
-              e.preventDefault(); // prevent the default behavior when right clicked
+              // prevent the default behavior when right clicked
+              e.preventDefault();
             }}
           >
             <FileTreeSidebar />

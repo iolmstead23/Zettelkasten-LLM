@@ -6,9 +6,12 @@ import { useNotifyContentContext, useNotifyToggleContext } from '@/components/ui
 import { useEffect } from 'react';
 
 export default function Notification() {
+  /** This allows us to toggle the notification on and off */
   const notifyToggle = useNotifyToggleContext();
+  /** This allows us to grab the contents for the notification */
   const notifyContent = useNotifyContentContext();
 
+  // Timeout the notification box if enough time has passed
   useEffect(() => {
     const timer = setTimeout(() => {
       notifyToggle.setNotifyToggle(false);
@@ -16,6 +19,7 @@ export default function Notification() {
     return () => clearTimeout(timer);
   },[]);
 
+  /** This sets the appropriate icon */
   const symbol: any = (type: string) => {
     switch (type) {
         default:

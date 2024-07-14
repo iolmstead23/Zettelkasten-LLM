@@ -4,6 +4,7 @@ import { useUser } from '@auth0/nextjs-auth0/client';
 import { Fragment } from 'react';
 import Image from 'next/image';
 
+/** I have no idea what this does */
 function classNames(...classes:any) {
     return classes.filter(Boolean).join(' ');
 };

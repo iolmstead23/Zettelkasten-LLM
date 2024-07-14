@@ -5,11 +5,9 @@ import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useRenameToggleContext, useSortIndexContext } from '@/components/ui/UIProvider';
 
-/**
- * This file is responsible for providing an interface to rename files
-*/
+/** This file is responsible for providing an interface to rename files */
 const RenameFile = ({ name, id }: { name:string, id:number }) => {
-/** This enables us to toggle the rename modal open and close */
+  /** This enables us to toggle the rename modal open and close */
   const renameToggleContext: any = useRenameToggleContext();
   /** This enables us to intitiate an index sort */
   const sortIndex = useSortIndexContext();
@@ -23,7 +21,9 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {setNewName(event.target.value);};
   /** ext is the files extension */
   const ext = name.split('.')[1];
+  /** This lets us toggle the notification on and off */
   const notifyToggle = useNotifyToggleContext();
+  /** This tracks the notifications contents */
   const notifyContent = useNotifyContentContext();
 
   return (

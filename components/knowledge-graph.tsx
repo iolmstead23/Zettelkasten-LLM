@@ -45,7 +45,7 @@ const SimpleGraph: React.FC = () => {
     }
   });
 
-  // trigger an index sort and get updated nodes
+  // trigger an index sort on render and get updated nodes
   useEffect(()=>{
     sortIndex.setIndexSort(true);
   },[])
@@ -77,12 +77,10 @@ const SimpleGraph: React.FC = () => {
   };
 
   const onNodeClick = (node: RGNode, _e: MouseEvent | TouchEvent) => {
-    // console.log('onNodeClick:', node.text);
     return true;
   };
 
   const onLineClick = (line: RGLine, _link: RGLink, _e: MouseEvent | TouchEvent) => {
-    // console.log('onLineClick:', line.text, line.from, line.to);
     return true;
   };
 
