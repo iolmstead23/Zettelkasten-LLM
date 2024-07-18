@@ -1,6 +1,7 @@
 'use client'
 
 import { useUser } from '@auth0/nextjs-auth0/client';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import React, { useState, createContext, useEffect, useContext, useReducer } from 'react';
 
 interface State {
@@ -33,8 +34,8 @@ interface SelectedIDState {
 }
 
 interface SelectedEditIDState {
-    selectedEditID: [number, string, string];
-    setSelectedEditID: (e: [number, string, string]) => void;
+    selectedEditID: [number, Object, string, string]; // Add content as the fourth element
+    setSelectedEditID: (e: [number, Object, string, string]) => void;
 }
 
 interface RenameToggleState {
@@ -154,18 +155,39 @@ function reducer(state: State, action: Action): State {
         }
     }
 
-    /** This saves file contents */
     function save_file(state: State, action: Action): any {
-        return (state.files).map((item: any) => {
-            if (item.type === "file") {
-                if (item.id === action.payload?.id) {
-                    return {id: item.id, type: "file", name: item.name, contents: action.payload?.contents};
+        // Helper function to filter out empty children
+        function filterEmptyChildren(contents: Object): Object {
+            if (typeof contents === 'object' && contents !== null) {
+                const filteredContents: any = {};
+                for (const [key, value] of Object.entries(contents)) {
+                    if (value.type === 'folder') {
+                        value.contents = filterEmptyChildren(value.contents);
+                        // Only include the folder if it has non-empty contents
+                        if (Object.keys(value.contents).length > 0) {
+                            filteredContents[key] = value;
+                        }
+                    } else {
+                        filteredContents[key] = value;
+                    }
                 }
+                return [filteredContents];
+            }
+            return contents;
+        }
+
+        const updatedFiles = state.files.map((item: FileTreeObject) => {
+            if (item.type === "file" && item.id === action.payload?.id) {
+                return { ...item, contents: filterEmptyChildren(action.payload?.contents) };
             } else if (item.type === "folder") {
-                return {type: "folder", name: item.name, contents: save_file({files: item.contents}, action)};
+                return { ...item, contents: save_file({ files: item.contents as FileTreeObject[] }, action).files };
             }
             return item;
         });
+
+        console.log(updatedFiles);
+
+        return { ...state, files: updatedFiles };
     }
 
     /** This deletes files and folders (id,setEditor) */
@@ -174,6 +196,7 @@ function reducer(state: State, action: Action): State {
         const itemID: number = action.payload?.id;
         const editorID: number = action.payload?.editorID[0];
         const setEditorID: (e:[number,string,string])=>{e:[number,string,string]} = action.payload?.setEditor;
+        const editorContents = action.payload?.editorContents;
 
         const checkEditor = (folders:any) => {
             (folders).forEach((item: any) => {
@@ -181,6 +204,13 @@ function reducer(state: State, action: Action): State {
                     if (item.id === editorID) {
                         // if the file being edited is inside of a folder marked for deleting then reset editor
                         setEditorID([-1,'','']);
+                        editorContents.setEditorState(
+                            editorContents.parseEditorState(
+                                JSON.stringify(
+                                    {root: {children: [{children: [{detail: 0, format: 0, mode: "normal", style: "", text: "File deleted...", type: "text", version: 1}], direction: "ltr", format: "", indent: 0, type: "paragraph", version: 1}], direction: "ltr", format: "", indent: 0, type: "root", version: 1}}
+                                )
+                            )
+                        );
                     }
                 } else if (item.type === "folder") {
                     // dig through folder
@@ -248,7 +278,7 @@ function reducer(state: State, action: Action): State {
             })
         }
 
-        //** his keeps track of the folder directory of the file being edited */
+        //** This keeps track of the folder directory of the file being edited */
         function getFilePath(
             fileTreeObjects: FileTreeObject[],
             selectedId: number
@@ -334,6 +364,7 @@ function reducer(state: State, action: Action): State {
     
         // Return alphabetized files with sorted indexes
         return {files: sortFiles(alphabetizeFiles(state.files), action)};
+
     }
     
     switch (action.type) {
@@ -342,7 +373,7 @@ function reducer(state: State, action: Action): State {
         case 'get_files':
             return {files: action.payload};
         case 'save_file':
-            return {files: save_file(state, action)};
+            return save_file(state, action);
         case 'insert_file':
             return {files: create_file(state, action)};
         case 'rename_file':
@@ -355,20 +386,57 @@ function reducer(state: State, action: Action): State {
 }
 
 const UIProvider = ({ children }: any) => {
-
+    /** This stores the state of the reducer function */
     const [state, dispatch] = useReducer(reducer, { files: [] });
-
+    /** This stores the state of the file location */
     const [fileLocation, setFileLocation] = useState<string[]>(['']);
+    /** This stores the state of the knowledge graph nodes */
     const [nodes, setNodes] = useState<Object[]>([{}]);
+    /** This stores the state of the filetree selection */
     const [selectedID, setSelectedID] = useState<[number, string]>([-1, '']);
-    const [selectedEditID, setSelectedEditID] = useState<[number, string, string]>([-1, '', '']);
+    /** This stores the state of the editors most recently saved file (This is used to change which file to edit) */
+    const [selectedEditID, setSelectedEditID] = useState<[number, Object, string, string]>([-1, {}, '', '']);
+    /** This stores the toggle state of the Rename Dialog */
     const [renameIsOpen, setRenameIsOpen] = useState<boolean>(false);
+    /** This stores the toggle state of the Create Dialog */
     const [newIsOpen, setNewIsOpen] = useState<boolean>(false);
+    /** This stores the toggle state of the Delete Dialog */
     const [deleteIsOpen, setDeleteIsOpen] = useState<boolean>(false);
+    /** This stores the toggle state of the reducer's index sort (This is ran after every time the filetree is edited) */
     const [indexSort, setIndexSort] = useState<boolean>(false);
+    /** This stores the toggle state of the Notification Box */
     const [notifyToggle, setNotifyToggle] = useState<boolean>(false);
+    /** This stores the content state of the Notification Box */
     const [notifyContent, setNotifyContent] = useState<[string, string]>(['', '']);
+    /** This gets the User data */
     const { user } = useUser();
+
+    /* This is the format that Lexical needs to use */
+    const fileContents: Object = {
+        root: {
+            children: [{
+                children: [{
+                    detail: 0,
+                    format: 0,
+                    mode: "normal",
+                    style: "",
+                    text: "Hello, this is the initial state of the editor.",
+                    type: "text",
+                    version: 1,
+                },],
+                direction: "ltr",
+                format: "",
+                indent: 0,
+                type: "paragraph",
+                version: 1,
+            },],
+            direction: "ltr",
+            format: "",
+            indent: 0,
+            type: "root",
+            version: 1,
+        }
+    };
 
     /** grabs data from database */
     const getData = async () => {
@@ -419,15 +487,7 @@ const UIProvider = ({ children }: any) => {
             dispatch({
                 type: "get_files",
                 selectID: 0,
-                payload: [
-                    {id: 0, type: 'file', name: 'New File.md', contents: 'This is dummy text' },
-                    {id: 1, type: 'folder', name: 'New Folder', contents: [
-                        {id: 2, type: 'file', name: 'New File 2.md', contents: 'This is dummy text' },
-                        {id: 3, type: 'folder', name: 'New Folder 2', contents: [
-                            {id: 4, type: 'file', name: 'New File 3.md', contents: 'This is dummy text' }
-                        ]}
-                    ]},
-                ]
+                payload: [{id: 0, type: 'file', name: 'New File.md', contents: [fileContents]}]
             });
         }
 
@@ -470,7 +530,27 @@ const UIProvider = ({ children }: any) => {
                                         <NotificationContentContext.Provider value={{notifyContent,setNotifyContent}}>
                                             <KnowledgeGraphContext.Provider value={{nodes,setNodes}}>
                                                 <FileLocationContext.Provider value={{fileLocation,setFileLocation}}>
-                                                    {children}
+                                                    <LexicalComposer
+                                                        initialConfig={{
+                                                            namespace: 'lexical-editor',
+                                                            theme: {
+                                                                root: 'p-4 min-h-[72.5vh] focus:outline-none outline-none',
+                                                                link: 'cursor-pointer',
+                                                                text: {
+                                                                    bold: 'font-semibold',
+                                                                    underline: 'underline',
+                                                                    italic: 'italic',
+                                                                    strikethrough: 'line-through',
+                                                                    underlineStrikethrough: 'underlined-line-through',
+                                                                },
+                                                            },
+                                                            onError: error => {
+                                                                // console.log(error);
+                                                            },
+                                                        }}
+                                                    >
+                                                        {children}
+                                                    </LexicalComposer>
                                                 </FileLocationContext.Provider>
                                             </KnowledgeGraphContext.Provider>
                                         </NotificationContentContext.Provider>

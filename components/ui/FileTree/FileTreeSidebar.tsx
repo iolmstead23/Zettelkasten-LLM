@@ -25,8 +25,9 @@ interface CollapsableComponent {
 
 interface RootValues {
   id:number;
+  type: string;
   name:string;
-  contents:string;
+  contents:Object | string;
 }
 
 // File icons object
@@ -70,7 +71,7 @@ const Collapsible: React.FC<CollapsableComponent> = styledComponents.div`
 `;
 
 // File component
-const File = ({ id, name, selection, contents }:{ id:number, name:string, selection:any, contents:string }) => {
+const File = ({ id, name, selection, contents }:{ id:number, name:string, selection:any, contents:Object }) => {
 
   /** Extract file extension */
   const ext = name.split(".")[1];
@@ -183,7 +184,7 @@ const Root = ({ data, selection }: any) => {
       {/* Map over file tree data and render file or folder components */}
       {data && data.map((item: any, index: number) => {
 
-        const {id,name,contents}: RootValues = item;
+        const {id,type,name,contents}: RootValues = item;
 
         if (item.type === "file") {
           return (

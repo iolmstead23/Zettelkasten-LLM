@@ -1,6 +1,5 @@
 'use client'
 
-import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
 import { useDeleteToggleContext, useNewItemToggleContext, useNotifyToggleContext, useRenameToggleContext, useSelectedIDContext } from '@/components/ui/UIProvider';
@@ -10,7 +9,8 @@ import Notification from '@/components/ui/Notification';
 import FileInfoDisplay from '@/components/ui//FileInfoDisplay';
 import EditorFileOptions from '@/components/ui/EditorFileOptions';
 import DeleteItem from '@/components/ui/FileTree/DeleteConfirmDialog';
-const EditorComp = dynamic(() => import('@/components/EditorComponent'), { ssr: false });
+import Editor from '@/components/EditorComponent';
+
 /** This is the main Dashboard component */
 export default function Dashboard() {
   /** This lets us turn the rename dialog on and off */
@@ -55,8 +55,11 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="block overflow-y-auto max-h-screen pt-5">
-              <div className='h-[72.5vh] bg-white'>
-                <EditorComp markdown='Select a file!'/>
+              <div className='border-2 border-slate-300 rounded-md overflow-y-auto'>
+                <div className='h-[72.5vh]'>
+                  {/* <EditorComp markdown='Select a file!'/> */}
+                  <Editor />
+                </div>
               </div>
               <div className='fixed bottom-4'>
                 <FileInfoDisplay />

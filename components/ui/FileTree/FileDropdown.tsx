@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { useRenameToggleContext, useSelectedEditContext, useSortIndexContext, useFileLocationContext, useDeleteToggleContext } from '@/components/ui/UIProvider';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
 /** I do not know what this does */
 function classNames(...classes: any) {
@@ -9,7 +10,7 @@ function classNames(...classes: any) {
 };
 
 /** This keeps track of the dropdown options that allow FileTree actions */
-export default function FileDropdown({id,data,name}:{id:number,data:string,name:string}) {
+export default function FileDropdown({id,data,name}:{id:number,data:any,name:string}) {
     /** This allows us to change the text editor contents */
     const selectEditContext = useSelectedEditContext();
     /** This open and closes the Rename dialog */
@@ -20,6 +21,11 @@ export default function FileDropdown({id,data,name}:{id:number,data:string,name:
     const fileLocation = useFileLocationContext();
     /** This triggers the reducer function to resort the index */
     const sortIndex = useSortIndexContext();
+
+    data ? data : data = {};
+
+    const [editor] = useLexicalComposerContext();
+
     return (
         <Menu as="div" className="block">
             <div>
@@ -46,7 +52,8 @@ export default function FileDropdown({id,data,name}:{id:number,data:string,name:
                                         'block px-4 py-2 text-sm'
                                     )}
                                     onClick={() => {
-                                        selectEditContext.setSelectedEditID([id,data,name]);
+                                        const fileContent = data.contents; // Assuming data contains the file's content
+                                        selectEditContext.setSelectedEditID([id, data, name, fileContent]);
                                         fileLocation.setFileLocation(['']);
                                         sortIndex.setIndexSort(true);
                                     }}

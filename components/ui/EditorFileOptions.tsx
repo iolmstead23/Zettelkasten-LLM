@@ -4,6 +4,7 @@ import { Menu, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { Fragment } from 'react'
 import { useFileLocationContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext } from '@/components/ui/UIProvider'
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 
 export default function EditorFileOptions() {
     const filetreeContext: any = useFileTreeContext();
@@ -11,22 +12,30 @@ export default function EditorFileOptions() {
     const notifyContent = useNotifyContentContext();
     const notifyToggle = useNotifyToggleContext();
     const fileLocation = useFileLocationContext();
+    const [editor] = useLexicalComposerContext();
+
     function save(): any {
-        selectedEditID.selectedEditID[0] != 0 && filetreeContext.dispatch({
+        /* do not save if there is no file currently being edited */
+        (selectedEditID.selectedEditID[0] != -1) && filetreeContext.dispatch({
           type:'save_file',
           payload:{
             id:selectedEditID.selectedEditID[0],
             contents:selectedEditID.selectedEditID[1]
         }});
+
+        console.log(editor.getEditorState());
+
         // notify user of successful save
         notifyContent.setNotifyContent(["success","Save success!"]);
         notifyToggle.setNotifyToggle(true);
     }
+
     /** Sets the File Options dropdown items */
     const items:{name:string,action:()=>void}[] = [
         { name: 'Save', action: save },
         { name: 'Import', action: ()=>{}}
     ]
+
     const selectedEditName: string = selectedEditID.selectedEditID[2] as string ?? '';
     return (
         <div className="inline-flex">

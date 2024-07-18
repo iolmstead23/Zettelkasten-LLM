@@ -4,6 +4,7 @@ import { Fragment, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useDeleteToggleContext, useFileLocationContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
 /** This file is responsible for providing an interface to delete files */
 const DeleteItem = ({ id }: { id: number }) => {
@@ -21,6 +22,9 @@ const DeleteItem = ({ id }: { id: number }) => {
   const notifyContent = useNotifyContentContext();
   /** This keeps track of edited file */
   const editorID = useSelectedEditContext();
+  
+  const [editor] = useLexicalComposerContext();
+  
   return (
     <Transition.Root show={deleteToggleContext.deleteIsOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => deleteToggleContext.setDeleteIsOpen(false)}>
@@ -73,7 +77,7 @@ const DeleteItem = ({ id }: { id: number }) => {
                         // delete
                         fileContext.dispatch({
                             type:'delete_file',
-                            payload:{id:id,editorID:editorID.selectedEditID,setEditor:editorID.setSelectedEditID}
+                            payload:{id:id,editorID:editorID.selectedEditID,setEditor:editorID.setSelectedEditID,editorContents:editor}
                         });
                         // notify user of successful save
                         notifyContent.setNotifyContent(["success", "Delete success!"]);

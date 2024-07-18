@@ -37,6 +37,33 @@ export default function NewItem() {
   /** newType and setNewType are used to toggle the selection of Folder or File */
   const [newType, setNewType] = useState<string>("File");
 
+  /* This is the format that Lexical needs to use */
+  const fileContents: any = {
+    root: {
+      children: [{
+        children: [{
+          detail: 0,
+          format: 0,
+          mode: "normal",
+          style: "",
+          text: "Hello, this is the initial state of the editor.",
+          type: "text",
+          version: 1,
+        },],
+        direction: "ltr",
+        format: "",
+        indent: 0,
+        type: "paragraph",
+        version: 1,
+      },],
+      direction: "ltr",
+      format: "",
+      indent: 0,
+      type: "root",
+      version: 1,
+    }
+  };
+
   return (
     <Transition.Root show={newToggleContext?.newIsOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => newToggleContext.setNewIsOpen(false)}>
@@ -113,7 +140,7 @@ export default function NewItem() {
                           fileContext.dispatch({
                             type:'insert_file',
                             selectID: selectionIDContext.selectedID[0],
-                            payload:{id:0,name:newName+".md",type:"file",contents:"Enter Text Here"},
+                            payload:{id:0,name:newName+".md",type:"file",contents:[fileContents]},
                           });
 
                           // sort index with new file
