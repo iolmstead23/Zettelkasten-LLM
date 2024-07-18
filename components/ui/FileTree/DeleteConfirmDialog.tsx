@@ -1,30 +1,21 @@
-'use client'
-
-import { Fragment, useRef } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useDeleteToggleContext, useFileLocationContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useDeleteToggleContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext, useSortIndexContext } from '@/components/ui/UIProvider';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
-/** This file is responsible for providing an interface to delete files */
 const DeleteItem = ({ id }: { id: number }) => {
-  /** This enables us to toggle the delete modal open and close */
   const deleteToggleContext: any = useDeleteToggleContext();
-  /** This enables us to intitiate an index sort */
   const sortIndex = useSortIndexContext();
-  /** This enables the manager to read from the filetree */
   const fileContext: any = useFileTreeContext();
-  /** This keeps track of the cancel button */
   const cancelButtonRef = useRef(null);
-  /** This keeps track of toggling notification box on and off */
   const notifyToggle = useNotifyToggleContext();
-  /** This keeps track of the notification contents */
   const notifyContent = useNotifyContentContext();
-  /** This keeps track of edited file */
   const editorID = useSelectedEditContext();
-  
   const [editor] = useLexicalComposerContext();
-  
+  // State to force re-render
+  const [forceRender, setForceRender] = useState(false);
+
   return (
     <Transition.Root show={deleteToggleContext.deleteIsOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => deleteToggleContext.setDeleteIsOpen(false)}>
@@ -85,6 +76,8 @@ const DeleteItem = ({ id }: { id: number }) => {
                         // resort the filetree
                         sortIndex.setIndexSort(true);
                         deleteToggleContext.setDeleteIsOpen(false);
+                        // Force re-render so the filetree updates
+                        setForceRender(!forceRender);
                     }}
                   >
                     Delete

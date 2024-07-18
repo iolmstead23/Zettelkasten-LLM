@@ -9,7 +9,7 @@ import Notification from '@/components/ui/Notification';
 import FileInfoDisplay from '@/components/ui//FileInfoDisplay';
 import EditorFileOptions from '@/components/ui/EditorFileOptions';
 import DeleteItem from '@/components/ui/FileTree/DeleteConfirmDialog';
-import Editor from '@/components/EditorComponent';
+import EditorComponent from '@/components/EditorComponent';
 
 /** This is the main Dashboard component */
 export default function Dashboard() {
@@ -23,6 +23,7 @@ export default function Dashboard() {
   const selectedInfo = useSelectedIDContext();
   /** This allows us to trigger a notification */
   const notifyToggle = useNotifyToggleContext();
+  
   return (
     <main className="xl:pl-96 max-h-full">
       {(renameToggle.renameIsOpen===true) && (
@@ -56,9 +57,9 @@ export default function Dashboard() {
             </div>
             <div className="block overflow-y-auto max-h-screen pt-5">
               <div className='border-2 border-slate-300 rounded-md overflow-y-auto'>
-                <div className='h-[72.5vh]'>
+                <div className='h-[70vh] overflow-hidden hover:overflow-y-scroll'>
                   {/* <EditorComp markdown='Select a file!'/> */}
-                  <Editor />
+                  <EditorComponent />
                 </div>
               </div>
               <div className='fixed bottom-4'>

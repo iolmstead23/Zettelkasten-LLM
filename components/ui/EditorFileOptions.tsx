@@ -23,8 +23,6 @@ export default function EditorFileOptions() {
             contents:selectedEditID.selectedEditID[1]
         }});
 
-        console.log(editor.getEditorState());
-
         // notify user of successful save
         notifyContent.setNotifyContent(["success","Save success!"]);
         notifyToggle.setNotifyToggle(true);
@@ -36,6 +34,7 @@ export default function EditorFileOptions() {
         { name: 'Import', action: ()=>{}}
     ]
 
+    /** Gets the name of the currently selected file */
     const selectedEditName: string = selectedEditID.selectedEditID[2] as string ?? '';
     return (
         <div className="inline-flex">

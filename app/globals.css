@@ -1,16 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import '@/node_modules/@mdxeditor/editor/dist/style.css';
 
-.mdxeditor {
-    @apply h-[34em] flex flex-col;
+#editor-wrapper {
+    position: relative;
 }
 
-.mdxeditor-toolbar {
-    @apply min-h-[50px] overflow-hidden mb-1;
+.fixed-toolbar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background-color: #f0f0f0;
+    padding: 10px;
+    z-index: 1000;
 }
 
-.mdxeditor-root-contenteditable {
-    @apply overflow-y-auto overscroll-x-contain;
+.toolbar-button {
+    margin-right: 10px;
+    padding: 5px 10px;
+    border: none;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }

@@ -48,6 +48,7 @@
     "relation-graph": "^2.2.1",
     "relation-graph-react": "^2.2.1",
     "styled-components": "^6.1.8",
+    "verbum": "^0.6.2",
     "zustand": "^4.5.2"
   },
   "devDependencies": {

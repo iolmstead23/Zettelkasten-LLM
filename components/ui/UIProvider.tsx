@@ -34,8 +34,8 @@ interface SelectedIDState {
 }
 
 interface SelectedEditIDState {
-    selectedEditID: [number, Object, string, string]; // Add content as the fourth element
-    setSelectedEditID: (e: [number, Object, string, string]) => void;
+    selectedEditID: [number, Object, string ]; // Add content as the fourth element
+    setSelectedEditID: (e: [number, Object, string ]) => void;
 }
 
 interface RenameToggleState {
@@ -185,19 +185,18 @@ function reducer(state: State, action: Action): State {
             return item;
         });
 
-        console.log(updatedFiles);
-
         return { ...state, files: updatedFiles };
     }
 
     /** This deletes files and folders (id,setEditor) */
-    function delete_file(state: State, action: Action) {
+    function delete_file(state: State, action: Action): any {
 
         const itemID: number = action.payload?.id;
         const editorID: number = action.payload?.editorID[0];
         const setEditorID: (e:[number,string,string])=>{e:[number,string,string]} = action.payload?.setEditor;
         const editorContents = action.payload?.editorContents;
 
+        // check if file being edited is inside of a folder marked for deleting
         const checkEditor = (folders:any) => {
             (folders).forEach((item: any) => {
                 if (item.type === "file") {
@@ -395,7 +394,7 @@ const UIProvider = ({ children }: any) => {
     /** This stores the state of the filetree selection */
     const [selectedID, setSelectedID] = useState<[number, string]>([-1, '']);
     /** This stores the state of the editors most recently saved file (This is used to change which file to edit) */
-    const [selectedEditID, setSelectedEditID] = useState<[number, Object, string, string]>([-1, {}, '', '']);
+    const [selectedEditID, setSelectedEditID] = useState<[number, Object, string]>([-1, {}, '']);
     /** This stores the toggle state of the Rename Dialog */
     const [renameIsOpen, setRenameIsOpen] = useState<boolean>(false);
     /** This stores the toggle state of the Create Dialog */
@@ -410,6 +409,25 @@ const UIProvider = ({ children }: any) => {
     const [notifyContent, setNotifyContent] = useState<[string, string]>(['', '']);
     /** This gets the User data */
     const { user } = useUser();
+
+    /** This is the initial configuration for the Lexical text editor */
+    const initialConfig = {
+        namespace: 'lexical-editor',
+        theme: {
+            root: 'p-4 min-h-[72.5vh] focus:outline-none outline-none',
+            link: 'cursor-pointer',
+            text: {
+                bold: 'font-semibold',
+                underline: 'underline',
+                italic: 'italic',
+                strikethrough: 'line-through',
+                underlineStrikethrough: 'underlined-line-through',
+            },
+        },
+        onError: (error: any) => {
+            console.log(error);
+        },
+    }
 
     /* This is the format that Lexical needs to use */
     const fileContents: Object = {
@@ -530,25 +548,7 @@ const UIProvider = ({ children }: any) => {
                                         <NotificationContentContext.Provider value={{notifyContent,setNotifyContent}}>
                                             <KnowledgeGraphContext.Provider value={{nodes,setNodes}}>
                                                 <FileLocationContext.Provider value={{fileLocation,setFileLocation}}>
-                                                    <LexicalComposer
-                                                        initialConfig={{
-                                                            namespace: 'lexical-editor',
-                                                            theme: {
-                                                                root: 'p-4 min-h-[72.5vh] focus:outline-none outline-none',
-                                                                link: 'cursor-pointer',
-                                                                text: {
-                                                                    bold: 'font-semibold',
-                                                                    underline: 'underline',
-                                                                    italic: 'italic',
-                                                                    strikethrough: 'line-through',
-                                                                    underlineStrikethrough: 'underlined-line-through',
-                                                                },
-                                                            },
-                                                            onError: error => {
-                                                                // console.log(error);
-                                                            },
-                                                        }}
-                                                    >
+                                                    <LexicalComposer initialConfig={initialConfig}>
                                                         {children}
                                                     </LexicalComposer>
                                                 </FileLocationContext.Provider>

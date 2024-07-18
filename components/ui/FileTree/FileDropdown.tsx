@@ -2,7 +2,6 @@ import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { useRenameToggleContext, useSelectedEditContext, useSortIndexContext, useFileLocationContext, useDeleteToggleContext } from '@/components/ui/UIProvider';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
 /** I do not know what this does */
 function classNames(...classes: any) {
@@ -21,10 +20,8 @@ export default function FileDropdown({id,data,name}:{id:number,data:any,name:str
     const fileLocation = useFileLocationContext();
     /** This triggers the reducer function to resort the index */
     const sortIndex = useSortIndexContext();
-
+    /** This keeps track of the file being edited */
     data ? data : data = {};
-
-    const [editor] = useLexicalComposerContext();
 
     return (
         <Menu as="div" className="block">
@@ -52,8 +49,8 @@ export default function FileDropdown({id,data,name}:{id:number,data:any,name:str
                                         'block px-4 py-2 text-sm'
                                     )}
                                     onClick={() => {
-                                        const fileContent = data.contents; // Assuming data contains the file's content
-                                        selectEditContext.setSelectedEditID([id, data, name, fileContent]);
+                                        selectEditContext.setSelectedEditID([id, data, name]);
+                                        // This sets the file location to the root
                                         fileLocation.setFileLocation(['']);
                                         sortIndex.setIndexSort(true);
                                     }}
