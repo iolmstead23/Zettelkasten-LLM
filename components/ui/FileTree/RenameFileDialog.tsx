@@ -28,7 +28,7 @@ const RenameFile = ({ name, id }: { name:string, id:number }) => {
 
   return (
     <Transition.Root show={renameToggleContext.renameIsOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => renameToggleContext.setRenameIsOpen(false)}>
+      <Dialog as="div" className="relative z-40" initialFocus={cancelButtonRef} onClose={() => renameToggleContext.setRenameIsOpen(false)}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

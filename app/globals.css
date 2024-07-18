@@ -4,6 +4,13 @@
 
 #editor-wrapper {
     position: relative;
+    min-height: 100%; /* Ensure it takes the full height of the parent */
+    overflow: hidden; /* Prevent overflow */
+}
+
+.editor-content {
+    min-height: 100%; /* Ensure the content takes the full height of the editor */
+    overflow-y: auto; /* Allow vertical scrolling if content overflows */
 }
 
 .fixed-toolbar {
@@ -12,7 +19,7 @@
     width: 100%;
     background-color: #f0f0f0;
     padding: 10px;
-    z-index: 1000;
+    z-index: 20;
 }
 
 .toolbar-button {

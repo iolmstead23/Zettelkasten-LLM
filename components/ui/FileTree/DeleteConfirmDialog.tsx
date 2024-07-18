@@ -18,7 +18,7 @@ const DeleteItem = ({ id }: { id: number }) => {
 
   return (
     <Transition.Root show={deleteToggleContext.deleteIsOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={() => deleteToggleContext.setDeleteIsOpen(false)}>
+      <Dialog as="div" className="relative z-40" initialFocus={cancelButtonRef} onClose={() => deleteToggleContext.setDeleteIsOpen(false)}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

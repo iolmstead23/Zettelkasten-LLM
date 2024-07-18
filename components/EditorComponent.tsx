@@ -83,7 +83,7 @@ function LexicalEditor() {
   return (
     <>
       <RichTextPlugin
-        contentEditable={<ContentEditable className="editor-content" />}
+        contentEditable={<ContentEditable className="editor-content"/>}
         placeholder={<Placeholder />}
         ErrorBoundary={LexicalErrorBoundary}
       />
@@ -93,12 +93,14 @@ function LexicalEditor() {
 }
 
 export default function Editor() {
+
   return (
     <div
       id="editor-wrapper"
       className={
         'relative prose prose-slate prose-p:my-0 prose-headings:mb-4 prose-headings:mt-2'
       }
+      tabIndex={0} // Make the div focusable
     >
       <Toolbar /> {/* Add the FixedToolbar component */}
       <LexicalEditor />

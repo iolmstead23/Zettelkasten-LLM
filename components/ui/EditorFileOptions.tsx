@@ -4,7 +4,6 @@ import { Menu, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { Fragment } from 'react'
 import { useFileLocationContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext } from '@/components/ui/UIProvider'
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 
 export default function EditorFileOptions() {
     const filetreeContext: any = useFileTreeContext();
@@ -12,7 +11,6 @@ export default function EditorFileOptions() {
     const notifyContent = useNotifyContentContext();
     const notifyToggle = useNotifyToggleContext();
     const fileLocation = useFileLocationContext();
-    const [editor] = useLexicalComposerContext();
 
     function save(): any {
         /* do not save if there is no file currently being edited */
