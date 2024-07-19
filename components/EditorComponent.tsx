@@ -4,7 +4,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { $getRoot, CLEAR_HISTORY_COMMAND } from 'lexical';
-import { useSelectedEditContext } from './ui/UIProvider';
+import { useSelectedEditContext } from '@/components/ui/UIProvider';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import Toolbar from '@/components/ui/Toolbar'; // Import the FixedToolbar component
 
@@ -81,28 +81,22 @@ function LexicalEditor() {
   }, [editorInfo.selectedEditID[0], editor]);
 
   return (
-    <>
+    <div>
       <RichTextPlugin
-        contentEditable={<ContentEditable className="editor-content"/>}
+        contentEditable={<ContentEditable className="editor-content" />}
         placeholder={<Placeholder />}
         ErrorBoundary={LexicalErrorBoundary}
       />
       <OnChangePlugin onChange={onChange} />
-    </>
+    </div>
   );
 }
 
 export default function Editor() {
-
+  
   return (
-    <div
-      id="editor-wrapper"
-      className={
-        'relative prose prose-slate prose-p:my-0 prose-headings:mb-4 prose-headings:mt-2'
-      }
-      tabIndex={0} // Make the div focusable
-    >
-      <Toolbar /> {/* Add the FixedToolbar component */}
+    <div id="editor-wrapper">
+      <Toolbar />
       <LexicalEditor />
     </div>
   );

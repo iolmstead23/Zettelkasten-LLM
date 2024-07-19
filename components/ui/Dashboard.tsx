@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
 import { useDeleteToggleContext, useNewItemToggleContext, useNotifyToggleContext, useRenameToggleContext, useSelectedIDContext } from '@/components/ui/UIProvider';
 import RenameFile from '@/components/ui/FileTree/RenameFileDialog';
@@ -55,14 +55,13 @@ export default function Dashboard() {
                 <EditorFileOptions />
               </div>
             </div>
-            <div className="block overflow-y-auto max-h-screen pt-5">
+            <div className="pt-5">
               <div className='border-2 border-slate-300 rounded-md overflow-y-auto'>
-                <div className='h-[70vh] overflow-hidden hover:overflow-y-scroll'>
-                  {/* <EditorComp markdown='Select a file!'/> */}
+                <div className='h-[69vh] overflow-hidden hover:overflow-y-scroll shadow-md sticky'>
                   <EditorComponent />
                 </div>
               </div>
-              <div className='fixed bottom-4'>
+              <div className='relative pt-5'>
                 <FileInfoDisplay />
               </div>
             </div>
