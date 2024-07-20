@@ -1,7 +1,7 @@
 import { Fragment, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useDeleteToggleContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { useDeleteToggleContext, useFileLocationContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext, useSortIndexContext } from '@/components/ui/UIProvider';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 
 const DeleteItem = ({ id }: { id: number }) => {
@@ -13,6 +13,7 @@ const DeleteItem = ({ id }: { id: number }) => {
   const notifyContent = useNotifyContentContext();
   const editorID = useSelectedEditContext();
   const [editor] = useLexicalComposerContext();
+  const fileLocationContext = useFileLocationContext();
   // State to force re-render
   const [forceRender, setForceRender] = useState(false);
 
@@ -68,7 +69,7 @@ const DeleteItem = ({ id }: { id: number }) => {
                         // delete
                         fileContext.dispatch({
                             type:'delete_file',
-                            payload:{id:id,editorID:editorID.selectedEditID,setEditor:editorID.setSelectedEditID,editorContents:editor}
+                            payload:{id:id,editorID:editorID.selectedEditID,setEditor:editorID.setSelectedEditID,editorContents:editor,setSelectFileLocation:fileLocationContext.setFileLocation}
                         });
                         // notify user of successful save
                         notifyContent.setNotifyContent(["success", "Delete success!"]);

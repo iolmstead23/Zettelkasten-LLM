@@ -64,23 +64,22 @@ const StyledFolder = styledComponents.div`
   }
 `;
 
-// Collapsible styled component
 const Collapsible: React.FC<CollapsableComponent> = styledComponents.div`
   height: ${(p: any)=> (p.isopen ? "0" : "auto")};
   overflow: hidden;
 `;
 
-// File component
-const File = ({ id, name, selection, contents }:{ id:number, name:string, selection:any, contents:Object }) => {
+/** File Component */
+const File = ({ id, name, selection, contents }: { id: number; name: string; selection: any; contents: Object }) => {
 
   /** Extract file extension */
   const ext = name.split(".")[1];
 
   /** Function to handle file selection */
-  const handleSelection = () => { selection.setSelectedID([id,name]); };
+  const handleSelection = () => { selection.setSelectedID([id, name]); };
 
   /** Check if file is selected */
-  const isSelected: boolean = (selection.selectedID[0]==id) ? true : false;
+  const isSelected: boolean = (selection.selectedID[0] == id) ? true : false;
 
   // Render file component
   return (

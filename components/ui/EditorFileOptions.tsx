@@ -2,8 +2,15 @@
 
 import { Menu, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { Fragment } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { useFileLocationContext, useFileTreeContext, useNotifyContentContext, useNotifyToggleContext, useSelectedEditContext } from '@/components/ui/UIProvider'
+
+interface FileTreeObject {
+    id: number;
+    type: string;
+    name: string;
+    contents: FileTreeObject[] | string;
+};
 
 export default function EditorFileOptions() {
     const filetreeContext: any = useFileTreeContext();
@@ -11,6 +18,8 @@ export default function EditorFileOptions() {
     const notifyContent = useNotifyContentContext();
     const notifyToggle = useNotifyToggleContext();
     const fileLocation = useFileLocationContext();
+
+    const selectedEditName = useRef<string>('');
 
     function save(): any {
         /* do not save if there is no file currently being edited */
@@ -26,14 +35,38 @@ export default function EditorFileOptions() {
         notifyToggle.setNotifyToggle(true);
     }
 
-    /** Sets the File Options dropdown items */
+    // Helper function to check if a file exists in the file tree
+    function fileExists(files: FileTreeObject[], fileId: number): boolean {
+        for (const file of files) {
+            // If the file is found, return true
+            if (file.id === fileId) {
+                return true;
+            }
+            // If the file is a folder, check if the file exists in the folder
+            if (file.type === 'folder' && fileExists(file.contents as FileTreeObject[], fileId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Get the name of the currently selected file being edited and updating the state
+    useEffect(() => {
+        const fileId = selectedEditID.selectedEditID[0];
+        // If the file is not found or the file is not being edited, set the name to an empty string
+        if (fileId === -1 || !fileExists(filetreeContext.state.files, fileId)) {
+            selectedEditName.current = '';
+        } else {
+            selectedEditName.current = selectedEditID.selectedEditID[2] as string ?? '';
+        }
+    }, [selectedEditID.selectedEditID, filetreeContext.state.files]);
+
+    // Array of items to be displayed in the dropdown menu
     const items:{name:string,action:()=>void}[] = [
         { name: 'Save', action: save },
         { name: 'Import', action: ()=>{}}
-    ]
+    ];
 
-    /** Gets the name of the currently selected file */
-    const selectedEditName: string = selectedEditID.selectedEditID[2] as string ?? '';
     return (
         <div className="inline-flex">
             <button
@@ -61,14 +94,14 @@ export default function EditorFileOptions() {
                     >
                         <div className="py-1">
                             {items.map((item) => (
-                            <Menu.Item key={item.name}>
-                                <button
-                                onClick={item.action}
-                                className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
-                                >
-                                {item.name}
-                                </button>
-                            </Menu.Item>
+                                <Menu.Item key={item.name}>
+                                    <button
+                                    onClick={item.action}
+                                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                                    >
+                                    {item.name}
+                                    </button>
+                                </Menu.Item>
                             ))}
                         </div>
                     </Menu.Items>
@@ -84,7 +117,7 @@ export default function EditorFileOptions() {
                         fileLocation.fileLocation 
                     ) ? item : '').filter(Boolean).join(' / ')}
                     ${(fileLocation.fileLocation.length>0) ? " / " : ''}
-                    ${selectedEditName}
+                    ${selectedEditName.current}
                 `}
                 </div>
             </div>      

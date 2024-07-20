@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense } from 'react';
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
 import { useDeleteToggleContext, useNewItemToggleContext, useNotifyToggleContext, useRenameToggleContext, useSelectedIDContext } from '@/components/ui/UIProvider';
 import RenameFile from '@/components/ui/FileTree/RenameFileDialog';
@@ -25,7 +25,7 @@ export default function Dashboard() {
   const notifyToggle = useNotifyToggleContext();
   
   return (
-    <main className="xl:pl-96 max-h-full">
+    <main className="xl:pl-72 max-h-full">
       {(renameToggle.renameIsOpen===true) && (
         <div>
           <RenameFile id={selectedInfo.selectedID[0] as number} name={selectedInfo.selectedID[1] as string} />
@@ -67,7 +67,7 @@ export default function Dashboard() {
             </div>
           </Suspense>
           <aside
-            className="absolute bottom-0 left-20 top-16 hidden w-96 overflow-y-auto border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block"
+            className="absolute w-72 bottom-0 left-20 top-16 hidden overflow-y-auto border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block"
             onContextMenu={(e) => {
               // prevent the default behavior when right clicked
               e.preventDefault();

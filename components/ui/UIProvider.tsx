@@ -195,6 +195,7 @@ function reducer(state: State, action: Action): State {
         const editorID: number = action.payload?.editorID[0];
         const setEditorID: (e:[number,string,string])=>{e:[number,string,string]} = action.payload?.setEditor;
         const editorContents = action.payload?.editorContents;
+        const setFileLocation = action.payload?.setSelectFileLocation;
 
         // check if file being edited is inside of a folder marked for deleting
         const checkEditor = (folders:any) => {
@@ -203,6 +204,9 @@ function reducer(state: State, action: Action): State {
                     if (item.id === editorID) {
                         // if the file being edited is inside of a folder marked for deleting then reset editor
                         setEditorID([-1,'','']);
+                        // reset file location
+                        setFileLocation(['']);
+                        // reset editor contents
                         editorContents.setEditorState(
                             editorContents.parseEditorState(
                                 JSON.stringify(
@@ -365,7 +369,8 @@ function reducer(state: State, action: Action): State {
         return {files: sortFiles(alphabetizeFiles(state.files), action)};
 
     }
-    
+
+    // This is the main switch statement for the reducer function
     switch (action.type) {
         default:
             return state;
@@ -384,6 +389,7 @@ function reducer(state: State, action: Action): State {
     }
 }
 
+// This is the main UIProvider component
 const UIProvider = ({ children }: any) => {
     /** This stores the state of the reducer function */
     const [state, dispatch] = useReducer(reducer, { files: [] });
@@ -535,7 +541,7 @@ const UIProvider = ({ children }: any) => {
         }
     }, [indexSort]);
 
-    // This sends the state data down to the child components
+    // This is the main return statement for the UIProvider component
     return (
         <FileTreeContext.Provider value={{state,dispatch}}>
             <SelectedIDContext.Provider value={{selectedID, setSelectedID}}>
