@@ -53,7 +53,7 @@ export default function EditorFileOptions() {
     // Get the name of the currently selected file being edited and updating the state
     useEffect(() => {
         const fileId = selectedEditID.selectedEditID[0];
-        // If the file is not found or the file is not being edited, set the name to an empty string
+        // If the file is not found or the file is not being edited, set the name to an empty string and reset the editors state
         if (fileId === -1 || !fileExists(filetreeContext.state.files, fileId)) {
             selectedEditName.current = '';
         } else {

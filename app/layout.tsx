@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import Sidebars from "@/components/ui/Sidebars";
-import { UserProvider } from '@auth0/nextjs-auth0/client';
-import UIProvider from '@/components/ui/UIProvider';
+import { UserProvider } from "@auth0/nextjs-auth0/client";
+import UIProvider from "@/components/ui/UIProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 
 /** Wrap the layout around the children */
 export default function RootLayout({
-  children
+  children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" className="h-full">
@@ -31,4 +31,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-};
+}

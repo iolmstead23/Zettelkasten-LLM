@@ -14,7 +14,7 @@ export default function FileDropdown({id,data,name}:{id:number,data:any,name:str
     const selectEditContext = useSelectedEditContext();
     /** This open and closes the Rename dialog */
     const renameContext = useRenameToggleContext();
-    /** This open and closes the Delete duialog */
+    /** This open and closes the Delete dialog */
     const deleteContext = useDeleteToggleContext();
     /** This keeps track of the subdirectory of folders for the file being edited */
     const fileLocation = useFileLocationContext();

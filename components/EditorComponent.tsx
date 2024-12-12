@@ -6,7 +6,7 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { $getRoot, CLEAR_HISTORY_COMMAND } from 'lexical';
 import { useSelectedEditContext } from '@/components/ui/UIProvider';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import Toolbar from '@/components/ui/Toolbar'; // Import the FixedToolbar component
+import Toolbar from '@/components/ui/Toolbar';
 
 const Placeholder = () => {
   return (
@@ -17,10 +17,12 @@ const Placeholder = () => {
 };
 
 function LexicalEditor() {
+  // We use ref instead of state to store the text content of the editor because we don't want to trigger a re-render when the text content changes
   const text = useRef<Object>();
   const editorInfo: any = useSelectedEditContext();
   const [editor] = useLexicalComposerContext();
 
+  // This function is used to handle the onChange event of the editor
   function onChange(editorState: any): any {
     let rootTree = null;
     editorState.read(() => {
@@ -31,10 +33,14 @@ function LexicalEditor() {
     return rootTree;
   }
 
+    // This function is used to format the node and its children
   function formatNode(node: any): any {
+    // Recursively format the node and its children
     const children = node.getChildren ? node.getChildren() : [];
+    //This code is used to format the node and its children
     const formattedChildren = children.map((child: any) => formatNode(child));
 
+    //The root node is a special case, as it has no parent
     if (node.getType() === "root") {
       return {
         root: {
@@ -67,6 +73,7 @@ function LexicalEditor() {
   }
 
   useEffect(() => {
+    // Load the selected edit ID contents into the editor whenever the selected edit ID changes
     if (editorInfo.selectedEditID[1]) {
       try {
         const parsedEditorState: any = editor.parseEditorState(JSON.stringify(editorInfo.selectedEditID[1][0]));

@@ -15,7 +15,7 @@ nltk.download('averaged_perceptron_tagger')
 
 stop_words = set(stopwords.words('english'))
 
-file_path = "../public/"
+file_path = "./Zettelkasten"
 markdown_text = []
 tagged_tokens = []
 tokens = []
