@@ -103,6 +103,7 @@ export default function Editor() {
   
   return (
     <div id="editor-wrapper">
+      <Toolbar />
       <LexicalEditor />
     </div>
   );
