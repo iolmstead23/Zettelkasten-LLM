@@ -1,13 +1,19 @@
-'use client'
+"use client";
 
-import { Fragment, useRef, useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useFileTreeContext, useNewItemToggleContext, useSelectedIDContext, useSortIndexContext } from '@/components/ui/UIProvider';
+import { Fragment, useRef, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import {
+  useCombinedOperations,
+  useFileTreeContext,
+  useNewItemToggleContext,
+  useSelectedIDContext,
+  useSortIndexContext,
+} from "@/components/ui/UIProvider";
+import { FileTreeObject } from "@/types";
 
 /** This file is responsible for providing an interface to create new items */
 export default function NewItem() {
-
   // TODO: Reject names if they already exist in the file tree. Force unique names!
 
   /** This enables us to toggle the creation modal open and close */
@@ -26,47 +32,93 @@ export default function NewItem() {
   const cancelButtonRef = useRef(null);
 
   /** newName and setNewName are used to keep track of the input's state */
-  const [newName, setNewName] = useState<string>('');
+  const [newName, setNewName] = useState<string>("");
 
   /** This updates the newName state whenever input has changed */
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {setNewName(event.target.value);};
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNewName(event.target.value);
+  };
 
   /** This toggles the newType state between folder and file */
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {setNewType(event.target.value);};
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setNewType(event.target.value);
+  };
 
   /** newType and setNewType are used to toggle the selection of Folder or File */
   const [newType, setNewType] = useState<string>("File");
 
+  const { handleAddFile } = useCombinedOperations();
+
   /* This is the format that Lexical needs to use */
   const fileContents: any = {
     root: {
-      children: [{
-        children: [{
-          detail: 0,
-          format: 0,
-          mode: "normal",
-          style: "",
-          text: "Hello, this is the initial state of the editor.",
-          type: "text",
+      children: [
+        {
+          children: [
+            {
+              detail: 0,
+              format: 0,
+              mode: "normal",
+              style: "",
+              text: "Hello, this is the initial state of the editor.",
+              type: "text",
+              version: 1,
+            },
+          ],
+          direction: "ltr",
+          format: "",
+          indent: 0,
+          type: "paragraph",
           version: 1,
-        },],
-        direction: "ltr",
-        format: "",
-        indent: 0,
-        type: "paragraph",
-        version: 1,
-      },],
+        },
+      ],
       direction: "ltr",
       format: "",
       indent: 0,
       type: "root",
       version: 1,
+    },
+  };
+
+  const handleCreateItem = () => {
+    const fileName = newName || "New File";
+
+    if (newType === "File") {
+      // Create file with proper extension
+      const fileData = {
+        type: "file",
+        name: fileName.endsWith(".md") ? fileName : `${fileName}.md`,
+        contents: fileContents,
+        selectID: selectionIDContext.selectedID[0], // Pass the selected folder ID
+      };
+
+      // Only use handleAddFile, remove the separate fileContext.dispatch
+      handleAddFile(fileData);
+    } else {
+      // Create folder
+      const folderData = {
+        type: "folder",
+        name: newName || "New Folder",
+        contents: [],
+        selectID: selectionIDContext.selectedID[0], // Pass the selected folder ID
+      };
+
+      handleAddFile(folderData);
     }
+
+    // Sort index with new item
+    sortIndex.setIndexSort(true);
+    newToggleContext.setNewIsOpen(false);
   };
 
   return (
     <Transition.Root show={newToggleContext?.newIsOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-40" initialFocus={cancelButtonRef} onClose={() => newToggleContext.setNewIsOpen(false)}>
+      <Dialog
+        as="div"
+        className="relative z-40"
+        initialFocus={cancelButtonRef}
+        onClose={() => newToggleContext.setNewIsOpen(false)}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -93,27 +145,33 @@ export default function NewItem() {
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                 <div className="sm:flex sm:items-start">
                   <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                    <ExclamationTriangleIcon
+                      className="h-6 w-6 text-red-600"
+                      aria-hidden="true"
+                    />
                   </div>
                   <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                    <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-base font-semibold leading-6 text-gray-900"
+                    >
                       Create New
                     </Dialog.Title>
                     <div className="mt-2">
-                      <div className=' flex items-center'>
-                          <label htmlFor="new" className="sr-only">
-                              Add file or folder name without extension
-                          </label>
-                          <input
-                              type="text"
-                              name="new"
-                              id="new"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                              placeholder="Filename"
-                              onChange={handleInputChange}
-                          />
+                      <div className=" flex items-center">
+                        <label htmlFor="new" className="sr-only">
+                          Add file or folder name without extension
+                        </label>
+                        <input
+                          type="text"
+                          name="new"
+                          id="new"
+                          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          placeholder="Filename"
+                          onChange={handleInputChange}
+                        />
 
-                        <div className='px-2'>
+                        <div className="px-2">
                           <select
                             id="type"
                             name="type"
@@ -131,56 +189,18 @@ export default function NewItem() {
                 </div>
 
                 <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                  {(newType==="File") && (
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                        onClick={() => {
-                          // this inserts a new file in the folder it is located in
-                          fileContext.dispatch({
-                            type:'insert_file',
-                            selectID: selectionIDContext.selectedID[0],
-                            payload:{id:0,name:newName+".md",type:"file",contents:[fileContents]},
-                          });
-
-                          // sort index with new file
-                          sortIndex.setIndexSort(true);
-
-                          newToggleContext.setNewIsOpen(false);
-                        }}
-                      >
-                        Create File
-                      </button>
-                    )}
-
-                    {(newType==="Folder") && (
-                      <button
-                        type="button"
-                        className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                        onClick={() => {
-                          // this inserts a new folder in the folder it is located in
-                          fileContext.dispatch({
-                            type:'insert_file',
-                            selectID:selectionIDContext.selectedID[0],
-                            payload:{id:0,name:newName,type:"folder",contents:[]},
-                          });
-
-                          // sort index with new folder
-                          sortIndex.setIndexSort(true);
-
-                          newToggleContext.setNewIsOpen(false);
-                        }}
-                      >
-                        Create Folder
-                      </button>
-                    )}
+                  <button
+                    type="button"
+                    className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                    onClick={handleCreateItem}
+                  >
+                    Create {newType}
+                  </button>
 
                   <button
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                    onClick={() => {
-                      newToggleContext.setNewIsOpen(false);
-                    }}
+                    onClick={() => newToggleContext.setNewIsOpen(false)}
                     ref={cancelButtonRef}
                   >
                     Cancel
@@ -193,4 +213,4 @@ export default function NewItem() {
       </Dialog>
     </Transition.Root>
   );
-};
+}

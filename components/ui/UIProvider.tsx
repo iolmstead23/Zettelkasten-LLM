@@ -8,95 +8,39 @@ import React, {
   useEffect,
   useContext,
   useReducer,
+  useRef,
+  useCallback,
 } from "react";
+import { Node, Edge } from "@/types";
+import {
+  Action,
+  KnowledgeGraphAction,
+  FileTreeState,
+  SelectedIDState,
+  SelectedEditIDState,
+  RenameToggleState,
+  NewItemToggleState,
+  DeleteToggleState,
+  IndexSortState,
+  NotificationContentState,
+  NotificationToggleState,
+  KnowledgeGraphState,
+  FileLocationState,
+  State,
+  FileTreeObject,
+  GraphData,
+} from "@/types";
+import { getRandomValues, randomInt } from "crypto";
 
-interface State {
-  files: FileTreeObject[];
-}
-
-interface Edge {
-  a: string;
-  b: string;
-}
-
-interface Node {
-  edgelist: Object[] | Edge;
-}
-
-interface Action {
-  type:
-    | "get_files"
-    | "insert_file"
-    | "rename_file"
-    | "delete_file"
-    | "sort_index"
-    | "save_file";
-  selectID?: number;
-  payload?: any;
-  count?: number;
-  fileFound?: boolean;
-}
-
-interface FileTreeState {
-  state: State;
-  dispatch: React.Dispatch<Action>;
-}
-
-interface FileTreeObject {
-  id: number;
-  type: string;
-  name: string;
-  contents: FileTreeObject[] | string;
-}
-
-interface SelectedIDState {
-  selectedID: [number, string];
-  setSelectedID: (e: [number, string]) => void;
-}
-
-interface SelectedEditIDState {
-  selectedEditID: [number, Object, string]; // Add content as the fourth element
-  setSelectedEditID: (e: [number, Object, string]) => void;
-}
-
-interface RenameToggleState {
-  renameIsOpen: boolean;
-  setRenameIsOpen: (e: boolean) => void;
-}
-
-interface NewItemToggleState {
-  newIsOpen: boolean;
-  setNewIsOpen: (e: boolean) => void;
-}
-
-interface DeleteToggleState {
-  deleteIsOpen: boolean;
-  setDeleteIsOpen: (e: boolean) => void;
-}
-
-interface IndexSortState {
-  indexSort: boolean;
-  setIndexSort: (e: boolean) => void;
-}
-
-interface NotificationToggleState {
-  notifyToggle: boolean;
-  setNotifyToggle: (e: boolean) => void;
-}
-
-interface NotificationContentState {
-  notifyContent: [string, string];
-  setNotifyContent: (e: [string, string]) => void;
-}
-
-interface KnowledgeGraphState {
-  nodes: Node[];
-  setNodes: (e: Node[]) => void;
-}
-
-interface FileLocationState {
-  fileLocation: string[];
-  setFileLocation: (e: string[]) => void;
+// Add these helper functions at the top of UIProvider.tsx, after your interfaces
+function dispatchCombined(
+  fileDispatch: React.Dispatch<Action>,
+  graphDispatch: React.Dispatch<KnowledgeGraphAction>,
+  fileAction: Action,
+  graphAction: KnowledgeGraphAction
+) {
+  fileDispatch(fileAction);
+  graphDispatch(graphAction);
 }
 
 // Create context for file tree, selected file, and rename toggle
@@ -121,9 +65,9 @@ const NotificationToggleContext = createContext<
 const NotificationContentContext = createContext<
   NotificationContentState | undefined
 >(undefined);
-const KnowledgeGraphContext = createContext<KnowledgeGraphState | undefined>(
-  undefined
-);
+const KnowledgeGraphContext = createContext<KnowledgeGraphState>({
+  nodes: { nodes: [], edges: [] },
+});
 const FileLocationContext = createContext<FileLocationState | undefined>(
   undefined
 );
@@ -340,11 +284,6 @@ function reducer(state: State, action: Action): State {
       }
 
       const newFiles = filterItems(state.files);
-      console.log("Delete operation:", {
-        originalState: state.files,
-        deletedId: action.payload?.id,
-        newState: newFiles,
-      });
 
       return {
         ...state,
@@ -354,18 +293,6 @@ function reducer(state: State, action: Action): State {
       console.error("Error in delete_file:", error);
       return state;
     }
-
-    // Make sure we're working with an array
-    if (!Array.isArray(state.files)) {
-      // console.error("State.files is not an array:", state.files);
-      return state;
-    }
-
-    // Return new state with filtered files
-    return {
-      ...state,
-      files: filterItems(state.files),
-    };
   }
 
   /** This reindexes the filetree's files and folders. This is the most important function. */
@@ -375,22 +302,70 @@ function reducer(state: State, action: Action): State {
     action.fileFound = false;
 
     /** This alphabetizes the filetrees in their folder before reindexing begins */
-    const alphabetizeFiles = (files: any[]): any[] => {
+    const alphabetizeFiles = (files: FileTreeObject[]): FileTreeObject[] => {
+      if (!Array.isArray(files)) {
+        console.warn("Invalid files array in alphabetizeFiles:", files);
+        return [];
+      }
+
       /** create sorted list of items in current directory */
-      const sorted_dir = (files: any) =>
-        files.sort(function (a: any, b: any) {
-          return a.name.localeCompare(b.name);
-        });
+      const sorted_dir = (files: FileTreeObject[]) =>
+        files
+          .filter((file): file is FileTreeObject => {
+            // Filter out invalid items
+            if (!file || typeof file !== "object") {
+              console.warn("Invalid file object:", file);
+              return false;
+            }
+
+            // Handle nested newFileData structure
+            if ("newFileData" in file) {
+              const newFileData = (file as any).newFileData;
+              return (
+                newFileData &&
+                typeof newFileData === "object" &&
+                "name" in newFileData &&
+                "type" in newFileData
+              );
+            }
+
+            // Handle regular file objects
+            return (
+              "name" in file &&
+              "type" in file &&
+              typeof file.name === "string" &&
+              typeof file.type === "string"
+            );
+          })
+          .map((file) => {
+            // If it's a nested newFileData structure, extract it
+            if ("newFileData" in file) {
+              const newFileData = (file as any).newFileData;
+              return {
+                id: newFileData.id || Date.now(),
+                type: newFileData.type,
+                name: newFileData.name,
+                contents: newFileData.contents || "",
+                edges: newFileData.edges || [],
+              } as FileTreeObject;
+            }
+            return file;
+          })
+          .sort((a: FileTreeObject, b: FileTreeObject) => {
+            return a.name.localeCompare(b.name);
+          });
 
       /** sort the current directory */
-      const sorted_root: any = sorted_dir(files);
+      const sorted_root = sorted_dir(files);
 
-      return sorted_root.map((item: any) => {
+      return sorted_root.map((item: FileTreeObject) => {
         // dig through directory of item if item is folder
-        if (item.type == "folder") {
-          return { ...item, contents: alphabetizeFiles(item.contents) };
+        if (item.type === "folder" && Array.isArray(item.contents)) {
+          return {
+            ...item,
+            contents: alphabetizeFiles(item.contents as FileTreeObject[]),
+          };
         }
-
         // return item if file
         return item;
       });
@@ -433,11 +408,16 @@ function reducer(state: State, action: Action): State {
       return mapFileTree(fileTreeObjects);
     }
 
-    /** This sorts through the alphabetized files and assigns them an incremental index number */
+    /** This sorts through the alphabetized files and assigns them an incremental index number */ /** This sorts through the alphabetized files and assigns them an incremental index number */
     function sortFiles(
       files: FileTreeObject[],
       action: Action
     ): FileTreeObject[] {
+      if (!Array.isArray(files)) {
+        console.warn("Invalid files array in sortFiles:", files);
+        return [];
+      }
+
       // This sets the context for the sort function
       const editorID = action.payload?.editorID;
       const setEditorID = action.payload?.setEditorID!;
@@ -445,57 +425,84 @@ function reducer(state: State, action: Action): State {
       const setSelectID = action.payload?.setSelectID!;
       const setFileLocation = action.payload?.setSelectFileLocation!;
 
-      let fileMap: any[] = [];
-
       // map through the tree using recursion on folders. Returns indexed filetree
-      fileMap = files.map((item: FileTreeObject) => {
+      const fileMap: FileTreeObject[] = files.map((item: FileTreeObject) => {
         if (item.type === "file") {
           // Increment count for files
           action.count! += 1;
+          const currentCount = action.count!;
 
           // Update editor
-          if (editorID && editorID[0] == item.id) {
-            setEditorID([action.count!, editorID[1], editorID[2]]);
+          if (editorID && editorID[0] === item.id) {
+            setEditorID([currentCount, editorID[1], editorID[2]]);
           }
 
           // Update filetree selection
-          if (selectID && selectID[0] == item.id) {
-            setSelectID([action.count as number, selectID[1], selectID[2]]);
+          if (selectID && selectID[0] === item.id) {
+            setSelectID([currentCount, selectID[1], selectID[2]]);
           }
 
           /** Update file with new ID */
-          const updatedFile = { ...item, id: action.count };
-          return updatedFile;
+          return {
+            ...item,
+            id: currentCount,
+            index: currentCount,
+          } as FileTreeObject;
         } else if (item.type === "folder") {
-          // Store current count for folder ID. We +1 count for files AND folders
+          // Store current count for folder ID
           action.count! += 1;
           const currentCount = action.count!;
+
           /** Recursively sort folder contents */
           const sortedContent = sortFiles(
-            [...(item.contents as FileTreeObject[])],
+            Array.isArray(item.contents)
+              ? (item.contents as FileTreeObject[])
+              : [],
             action
           );
 
           return {
             ...item,
             id: currentCount,
+            index: currentCount,
             contents: sortedContent,
-          };
+          } as FileTreeObject;
         }
+
+        // Default case - should never happen but satisfies TypeScript
+        return {
+          ...item,
+          id: action.count! + 1,
+          index: action.count! + 1,
+        } as FileTreeObject;
       });
 
       // update file location
-      setFileLocation(getFilePath(fileMap, editorID[0]));
+      if (editorID && editorID[0] !== -1) {
+        setFileLocation(getFilePath(fileMap, editorID[0]));
+      }
 
       return fileMap;
+    }
+
+    try {
+      // Ensure we have a valid files array before processing
+      if (!Array.isArray(state.files)) {
+        console.warn("Invalid state.files:", state.files);
+        return { files: [] };
+      }
+
+      // Return alphabetized files with sorted indexes
+      const sortedFiles = sortFiles(alphabetizeFiles(state.files), action);
+      return { files: sortedFiles };
+    } catch (error) {
+      console.error("Error in sort_index:", error);
+      return state;
     }
 
     // Return alphabetized files with sorted indexes
     return { files: sortFiles(alphabetizeFiles(state.files), action) };
   }
-
-  /** This adds an edge linking together two nodes */
-  function link_edge(state: State, action: Action) {}
 
   // This is the main switch statement for the reducer function
   switch (action.type) {
@@ -516,6 +523,115 @@ function reducer(state: State, action: Action): State {
   }
 }
 
+function knowledgeGraphReducer(
+  state: KnowledgeGraphState,
+  action: KnowledgeGraphAction
+): KnowledgeGraphState {
+  function get_nodes(data: FileTreeObject[]): GraphData {
+    function getNodeState(data: FileTreeObject[]): GraphData {
+      if (!data || !Array.isArray(data)) {
+        return { nodes: [], edges: [] };
+      }
+
+      const nodes: Node[] = [];
+      const edges: Edge[] = [];
+
+      try {
+        data.forEach((item: FileTreeObject) => {
+          if (!item || typeof item !== "object") {
+            console.warn("Invalid item in data:", item);
+            return;
+          }
+
+          if (item.type === "file" && item.id != undefined) {
+            nodes.push({
+              id: item.id?.toString(),
+              label: item.name,
+              // Add random coordinates if none exist
+              x: Math.random() * 10 - 5, // Random value between -5 and 5
+              y: Math.random() * 10 - 5,
+              z: Math.random() * 10 - 5,
+            });
+            if (item.edges && Array.isArray(item.edges)) {
+              edges.push(...item.edges);
+            }
+          } else if (
+            item.type === "folder" &&
+            item.contents &&
+            Array.isArray(item.contents)
+          ) {
+            const folderResults = getNodeState(
+              item.contents as FileTreeObject[]
+            );
+            nodes.push(...folderResults.nodes);
+            edges.push(...folderResults.edges);
+          }
+        });
+      } catch (error) {
+        console.error("Error processing nodes:", error);
+        return { nodes: [], edges: [] };
+      }
+
+      return { nodes, edges };
+    }
+
+    const { nodes, edges } = getNodeState(data);
+    return { nodes, edges };
+  }
+
+  switch (action.type) {
+    case "get_nodes":
+      const newNodes = get_nodes(action.payload);
+      console.log("New nodes generated:", newNodes);
+      return {
+        nodes: newNodes,
+      };
+
+    case "insert_node":
+      console.log("Inserting new node:", action.payload);
+      return {
+        nodes: {
+          nodes: [...state.nodes.nodes, action.payload],
+          edges: [...state.nodes.edges],
+        },
+      };
+
+    case "insert_edge":
+      return {
+        nodes: {
+          nodes: [...state.nodes.nodes],
+          edges: [...state.nodes.edges, action.payload],
+        },
+      };
+    case "delete_node":
+      return {
+        nodes: {
+          nodes: state.nodes.nodes.filter(
+            (node) => node.id !== action.payload.id
+          ),
+          edges: state.nodes.edges.filter(
+            (edge) =>
+              edge.source !== action.payload.id &&
+              edge.target !== action.payload.id
+          ),
+        },
+      };
+    case "delete_edge":
+      return {
+        nodes: {
+          nodes: [...state.nodes.nodes],
+          edges: state.nodes.edges.filter(
+            (edge) =>
+              edge.source !== action.payload.source ||
+              edge.target !== action.payload.target
+          ),
+        },
+      };
+    default:
+      return state;
+  }
+}
+
 // This is the main UIProvider component
 const UIProvider = ({ children }: any) => {
   /** This stores the state of the reducer function */
@@ -523,7 +639,7 @@ const UIProvider = ({ children }: any) => {
   /** This stores the state of the file location */
   const [fileLocation, setFileLocation] = useState<string[]>([""]);
   /** This stores the state of the knowledge graph nodes */
-  const [nodes, setNodes] = useState<Node[]>([]);
+  const [nodes, setNodes] = useState<GraphData>({ nodes: [], edges: [] });
   /** This stores the state of the filetree selection */
   const [selectedID, setSelectedID] = useState<[number, string]>([-1, ""]);
   /** This stores the state of the editors most recently saved file (This is used to change which file to edit) */
@@ -547,6 +663,10 @@ const UIProvider = ({ children }: any) => {
   ]);
   /** This gets the User data */
   const { user } = useUser();
+
+  const [graphState, graphDispatch] = useReducer(knowledgeGraphReducer, {
+    nodes: { nodes: [], edges: [] },
+  });
 
   /** This is the initial configuration for the Lexical text editor */
   const initialConfig = {
@@ -613,63 +733,6 @@ const UIProvider = ({ children }: any) => {
     }
   };
 
-  /** generates an array of nodes to plot on the knowledge graph. This is called when filetree is reindexed */ // In UIProvider.tsx
-  function getNodes(data: FileTreeObject[]): Node[] {
-    let count: number = 0;
-
-    function getNodeState(data: any): any[] {
-      // Add validation
-      if (!data || !Array.isArray(data)) {
-        // console.error("Invalid data structure in getNodeState:", data);
-        return [];
-      }
-
-      let files: any[] = [];
-
-      try {
-        data.forEach((item: any) => {
-          // Make sure item is valid
-          if (!item || typeof item !== "object") {
-            // console.warn("Invalid item in data:", item);
-            return;
-          }
-
-          // increment by 1 regardless of item
-          count += 1;
-
-          if (item.type === "file") {
-            files.push({
-              id: String(count),
-              text: item.name,
-              myicon: "el-icon-star-on",
-            });
-          } else if (item.type === "folder" && Array.isArray(item.contents)) {
-            // Make sure contents is an array before recursing
-            files.push(...getNodeState(item.contents));
-          }
-        });
-      } catch (error) {
-        // console.error("Error processing nodes:", error);
-        return [];
-      }
-
-      return files;
-    }
-
-    // Add validation for initial data
-    if (!Array.isArray(data)) {
-      // console.error("getNodes received invalid data:", data);
-      return [];
-    }
-
-    try {
-      return getNodeState(data);
-    } catch (error) {
-      // console.error("Error in getNodes:", error);
-      return [];
-    }
-  }
-
   // If user state changes then change the filetree state
   useEffect(() => {
     // grab data from database if user is logged in
@@ -711,13 +774,21 @@ const UIProvider = ({ children }: any) => {
         },
       });
 
-      // initial rendering of nodes
-      setNodes(getNodes(state.files));
-
       // reset toggle to off
       setIndexSort(false);
     }
   }, [indexSort]);
+
+  // Modify the effect that updates the graph
+  useEffect(() => {
+    if (state.files.length > 0) {
+      console.log("Updating graph state with files:", state.files); // Debug log
+      graphDispatch({
+        type: "get_nodes",
+        payload: state.files,
+      });
+    }
+  }, [state.files]);
 
   // This is the main return statement for the UIProvider component
   return (
@@ -741,7 +812,10 @@ const UIProvider = ({ children }: any) => {
                       value={{ notifyContent, setNotifyContent }}
                     >
                       <KnowledgeGraphContext.Provider
-                        value={{ nodes, setNodes }}
+                        value={{
+                          nodes: graphState.nodes,
+                          dispatch: graphDispatch,
+                        }}
                       >
                         <FileLocationContext.Provider
                           value={{ fileLocation, setFileLocation }}
@@ -882,6 +956,86 @@ export function useFileLocationContext() {
     );
   }
   return context;
+}
+
+export function useCombinedOperations() {
+  const { dispatch: fileDispatch } = useFileTreeContext();
+  const { dispatch: graphDispatch } = useKnowledgeGraphContext();
+  const { selectedID } = useSelectedIDContext();
+
+  const handleAddFile = useCallback(
+    (fileData: Partial<FileTreeObject>) => {
+      // Make fileData partial to allow incomplete objects
+      // Generate a unique ID
+      const newId = Date.now();
+      const selectedFolderId = selectedID[0] || -1;
+
+      // Create a complete FileTreeObject
+      const completeFileData: FileTreeObject = {
+        id: newId,
+        index: newId,
+        type: fileData.type || "file",
+        name: fileData.name || "New File.md",
+        contents: fileData.contents || "",
+        edges: fileData.edges || [],
+      };
+
+      // File Tree Operation
+      const fileAction: Action = {
+        type: "insert_file",
+        selectID: selectedFolderId,
+        payload: completeFileData,
+      };
+
+      // Knowledge Graph Operation
+      const graphAction: KnowledgeGraphAction = {
+        type: "insert_node",
+        payload: {
+          id: newId.toString(),
+          label: completeFileData.name,
+          x: Math.random() * 10 - 5,
+          y: Math.random() * 10 - 5,
+          z: Math.random() * 10 - 5,
+        },
+      };
+
+      dispatchCombined(fileDispatch, graphDispatch!, fileAction, graphAction);
+    },
+    [fileDispatch, graphDispatch]
+  );
+
+  const handleDeleteFile = useCallback(
+    (id: number) => {
+      // File Tree Operation
+      const fileAction: Action = {
+        type: "delete_file",
+        payload: { id },
+      };
+
+      // Knowledge Graph Operation
+      const graphAction: KnowledgeGraphAction = {
+        type: "delete_node",
+        payload: { id: id.toString() },
+      };
+
+      dispatchCombined(fileDispatch, graphDispatch!, fileAction, graphAction);
+    },
+    [fileDispatch, graphDispatch]
+  );
+
+  const handleAddEdge = useCallback(
+    (source: string, target: string) => {
+      const graphAction: KnowledgeGraphAction = {
+        type: "insert_edge",
+        payload: { source, target },
+      };
+
+      graphDispatch!(graphAction);
+    },
+    [graphDispatch]
+  );
+
+  return { handleAddFile, handleDeleteFile, handleAddEdge };
 }
 
 export default UIProvider;

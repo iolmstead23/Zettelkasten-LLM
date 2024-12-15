@@ -1,0 +1,100 @@
+{
+  "data": [
+    {
+      "type": "scatter3d",
+      "mode": "lines",
+      "hoverinfo": "none",
+      "line": {
+        "color": "black",
+        "width": 2
+      },
+      "x": [0],
+      "y": [0],
+      "z": [0]
+    },
+    {
+      "type": "scatter3d",
+      "mode": "markers",
+      "hoverinfo": "text",
+      "marker": {
+        "color": [0],
+        "line": {
+          "color": "black",
+          "width": 0.5
+        },
+        "size": 10,
+        "symbol": "circle",
+        "colorscale": "Viridis"
+      },
+      "text": ["Origin"],
+      "x": [0],
+      "y": [0],
+      "z": [0]
+    }
+  ],
+  "layout": {
+    "height": 800,
+    "width": 1000,
+    "autosize": true,
+    "hovermode": "closest",
+    "margin": {
+      "l": 50,
+      "r": 50,
+      "b": 50,
+      "t": 50,
+      "pad": 4
+    },
+    "scene": {
+      "aspectmode": "cube",
+      "camera": {
+        "eye": {
+          "x": 1.5,
+          "y": 1.5,
+          "z": 1.5
+        },
+        "center": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "up": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        }
+      },
+      "xaxis": {
+        "showgrid": true,
+        "zeroline": true,
+        "showline": true,
+        "showticklabels": true,
+        "title": {"text": "X Axis"},
+        "range": [-10, 10]
+      },
+      "yaxis": {
+        "showgrid": true,
+        "zeroline": true,
+        "showline": true,
+        "showticklabels": true,
+        "title": {"text": "Y Axis"},
+        "range": [-10, 10]
+      },
+      "zaxis": {
+        "showgrid": true,
+        "zeroline": true,
+        "showline": true,
+        "showticklabels": true,
+        "title": {"text": "Z Axis"},
+        "range": [-10, 10]
+      }
+    },
+    "showlegend": false,
+    "title": {
+      "text": "Knowledge Graph Network Model",
+      "x": 0.5,
+      "y": 0.95
+    },
+    "paper_bgcolor": "rgb(255, 255, 255)",
+    "plot_bgcolor": "rgb(255, 255, 255)"
+  }
+}
