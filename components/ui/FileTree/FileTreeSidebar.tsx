@@ -2,8 +2,8 @@
 
 // Import necessary hooks and components
 import React, { useState } from "react";
-import styledComponents from "styled-components";
 import { AiOutlineFile, AiOutlineFolder } from "react-icons/ai";
+import { BiPencil } from "react-icons/bi";
 import {
   DiJavascript1,
   DiCss3Full,
@@ -16,9 +16,9 @@ import {
   useSelectedIndexContext,
   useNewItemToggleContext,
 } from "@/components/ui/UIProvider";
-import EmptyFiles from "@/components/ui/EmptyFiles";
 import FileDropdown from "@/components/ui/FileTree/FileDropdown";
 import FolderDropdown from "@/components/ui/FileTree/FolderDropdown";
+import { useSelectedEditContext } from "@/components/ui/UIProvider";
 
 // Define types for file icons and collapsible component
 interface FILE_ICONS {
@@ -81,6 +81,9 @@ const File = ({
   /** Extract file extension */
   const ext = name.split(".")[1];
 
+  // Add this to get the currently edited file's info
+  const { selectedEditIndex } = useSelectedEditContext();
+
   /** Function to handle file selection */
   const handleSelection = () => {
     selection.setSelectedIndex([id, name]);
@@ -89,7 +92,9 @@ const File = ({
   /** Check if file is selected */
   const isSelected: boolean = selection.selectedIndex[0] == id ? true : false;
 
-  // Render file component
+  /** Check if file is being edited */
+  const isBeingEdited: boolean = selectedEditIndex[0] === id;
+
   // In the File component, replace the existing return with:
   return (
     <div
@@ -98,11 +103,10 @@ const File = ({
       }}
     >
       <div className="pl-5 flex items-center justify-between pr-4">
-        {" "}
         {/* Added justify-between and pr-4 */}
         <div className="flex items-center">
           {FILE_ICONS[ext] || <AiOutlineFile />}
-          <div onClick={handleSelection}>
+          <div onClick={handleSelection} className="flex items-center">
             <span
               className={`${
                 isSelected ? "text-purple-500" : "text-black"
@@ -110,6 +114,9 @@ const File = ({
             >
               {name}
             </span>
+            {isBeingEdited && (
+              <BiPencil className="ml-2 text-gray-500" size={14} />
+            )}
           </div>
         </div>
         {/* Dropdown is now positioned absolutely */}
@@ -273,23 +280,13 @@ export default function FileTreeSidebar() {
 
         {fileData && (
           <Tree>
-            <Tree.Root 
-              data={Array.isArray(fileData) ? fileData : []} 
-              selection={selection} 
+            <Tree.Root
+              data={Array.isArray(fileData) ? fileData : []}
+              selection={selection}
             />
           </Tree>
         )}
       </div>
-      {!fileData && (
-        <div
-          onContextMenu={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <EmptyFiles />
-        </div>
-      )}
     </div>
   );
 }
-

@@ -31,6 +31,7 @@ The Plot page includes the Plotly plot that will project and orientate the notes
 - Add edge creation using Editor toolbar feature
 - Store metrics such as last save and total word count
 - Create a history journal to record CRUD and Editor actions
-- Add logic for searchbar, analytics page, and calendar
+- Add logic for search bar, analytics page, and calendar
 - Polish up styles for better UI/UX
 - Add mobile support
+- Integrate LLM into UI after framework is built

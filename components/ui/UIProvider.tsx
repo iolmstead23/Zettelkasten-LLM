@@ -196,93 +196,80 @@ function reducer(state: State, action: Action): State {
   /** This deletes files and folders (id,setEditor) */
   function delete_file(state: State, action: Action): any {
     // Set the ID of the file or folder to be deleted
-    const itemID: number = action.payload?.id;
+    const itemIndex: number = action.payload?.id;
     // Set the ID of the editor
-    const editorIndex = action.payload?.editorIndex;
+    const editorIndex = action.payload?.editorIndex?.[0];
     // Used to reset the editor if the file being edited is deleted
-    const setEditorID: (e: [number, string, string]) => {
-      e: [number, string, string];
-    } = action.payload?.setEditor;
-    // Used to reset the editor if the file being edited is deleted
-    const editorContents = action.payload?.editorContents;
+    const setEditorIndex = action.payload?.setEditor;
     // Used to reset the FileLocation widget if the file being edited is deleted
     const setFileLocation = action.payload?.setSelectFileLocation;
 
-    // check if file being edited is inside of a folder marked for deleting
+    // Helper function that resets editor if deleted
     const checkEditor = (folders: FileTreeObject[]) => {
       folders.forEach((item: FileTreeObject) => {
         if (item.type === "file" && item.id === editorIndex[0]) {
           // Reset editor if the file being edited is inside a folder marked for deletion
-          setEditorID([-1, "", ""]);
+          setEditorIndex([-1, "", ""]);
           setFileLocation([""]);
-          editorContents.setEditorState(
-            editorContents.parseEditorState(
-              JSON.stringify({
-                root: {
-                  children: [
-                    {
-                      children: [
-                        {
-                          detail: 0,
-                          format: 0,
-                          mode: "normal",
-                          style: "",
-                          text: "File deleted...",
-                          type: "text",
-                          version: 1,
-                        },
-                      ],
-                      direction: "ltr",
-                      format: "",
-                      indent: 0,
-                      type: "paragraph",
-                      version: 1,
-                    },
-                  ],
-                  direction: "ltr",
-                  format: "",
-                  indent: 0,
-                  type: "root",
-                  version: 1,
-                },
-              })
-            )
-          );
         } else if (item.type === "folder") {
           checkEditor(item.contents as FileTreeObject[]);
         }
       });
     };
 
-    // Helper function to recursively filter out files/folders
-    function filterItems(items: FileTreeObject[]): FileTreeObject[] {
-      if (!Array.isArray(items)) {
-        console.error("filterItems received non-array:", items);
-        return [];
+    // Helper function to check if a folder contains the file being edited
+    function checkFolderContents(item: FileTreeObject): boolean {
+      if (item.type === "file") {
+        return item.id === editorIndex;
+      } else if (item.type === "folder") {
+        const contents = item.contents as FileTreeObject[];
+        return contents.some((child) => checkFolderContents(child));
       }
-
-      return items
-        .map((item: FileTreeObject) => {
-          // If this is a folder, process its contents
-          if (item.type === "folder") {
-            // Create new folder with filtered contents
-            const filteredContents = filterItems(
-              item.contents as FileTreeObject[]
-            );
-            return {
-              ...item,
-              contents: filteredContents,
-            };
-          }
-          return item;
-        })
-        .filter((item: FileTreeObject) => {
-          // After processing folders, filter out the item to be deleted
-          return item.id !== action.payload?.id;
-        });
+      return false;
     }
 
     try {
+      // First check if the item being deleted is the file being edited
+      if (editorIndex === itemIndex) {
+        setEditorIndex([-1, "", ""]);
+        setFileLocation([""]);
+      }
+      // Then check if it's a folder containing the edited file
+      else if (Array.isArray(state.files)) {
+        const itemToDelete = state.files.find((item) => item.id === itemIndex);
+        if (itemToDelete && itemToDelete.type === "folder") {
+          if (checkFolderContents(itemToDelete)) {
+            setEditorIndex([-1, "", ""]);
+            setFileLocation([""]);
+          }
+        }
+      }
+
+      // Helper function to recursively filter out files/folders
+      const filterItems = (items: FileTreeObject[]): FileTreeObject[] => {
+        if (!Array.isArray(items)) {
+          console.error("filterItems received non-array:", items);
+          return [];
+        }
+
+        return items
+          .map((item: FileTreeObject) => {
+            if (item.type === "folder") {
+              const filteredContents = filterItems(
+                item.contents as FileTreeObject[]
+              );
+              return {
+                ...item,
+                contents: filteredContents,
+              };
+            }
+            return item;
+          })
+          .filter((item: FileTreeObject) => {
+            return item.id !== action.payload?.id;
+          });
+      };
+
       if (!Array.isArray(state.files)) {
         console.error("State.files is not an array:", state.files);
         return state;
@@ -300,7 +287,7 @@ function reducer(state: State, action: Action): State {
     }
   }
 
-  /** This reindexes the filetree's files and folders. This is the most important function. */
+  /** This reindexes the filetree files and folders. This is the most important function. */
   function sort_index(state: State, action: Action): State {
     // Initialize count with the action count or 0
     action.count = action.count ?? 0;
@@ -425,7 +412,7 @@ function reducer(state: State, action: Action): State {
 
       // This sets the context for the sort function
       const editorIndex = action.payload?.editorIndex;
-      const setEditorID = action.payload?.setEditorID!;
+      const setEditorIndex = action.payload?.setEditorIndex!;
       const selectIndex = action.payload?.selectIndex;
       const setSelectIndex = action.payload?.setSelectIndex!;
       const setFileLocation = action.payload?.setSelectFileLocation!;
@@ -439,7 +426,7 @@ function reducer(state: State, action: Action): State {
 
           // Update editor
           if (editorIndex && editorIndex[0] === item.index) {
-            setEditorID([currentCount, editorIndex[1], editorIndex[2]]);
+            setEditorIndex([currentCount, editorIndex[1], editorIndex[2]]);
           }
 
           // Update filetree selection

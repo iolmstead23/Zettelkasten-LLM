@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
-import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
-import { $getRoot, CLEAR_HISTORY_COMMAND } from 'lexical';
-import { useSelectedEditContext } from '@/components/ui/UIProvider';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import Toolbar from '@/components/ui/Toolbar';
+import React, { useEffect, useRef } from "react";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { $getRoot, CLEAR_HISTORY_COMMAND } from "lexical";
+import { useSelectedEditContext } from "@/components/ui/UIProvider";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import Toolbar from "@/components/ui/Toolbar";
 
 const Placeholder = () => {
   return (
@@ -28,12 +28,16 @@ function LexicalEditor() {
     editorState.read(() => {
       const root = $getRoot();
       text.current = formatNode(root);
-      editorInfo.setSelectedEditIndex([editorInfo.selectedEditIndex[0], text.current, editorInfo.selectedEditIndex[2]]);
+      editorInfo.setSelectedEditIndex([
+        editorInfo.selectedEditIndex[0],
+        text.current,
+        editorInfo.selectedEditIndex[2],
+      ]);
     });
     return rootTree;
   }
 
-    // This function is used to format the node and its children
+  // This function is used to format the node and its children
   function formatNode(node: any): any {
     // Recursively format the node and its children
     const children = node.getChildren ? node.getChildren() : [];
@@ -50,11 +54,12 @@ function LexicalEditor() {
           indent: node.getIndent ? node.getIndent() : 0,
           type: node.getType ? node.getType() : "unknown",
           version: node.getVersion ? node.getVersion() : 1,
-          ...((node.getTextContent && node.getType() === "text") && { text: node.getTextContent() }),
+          ...(node.getTextContent &&
+            node.getType() === "text" && { text: node.getTextContent() }),
           ...(node.getDetail && { detail: node.getDetail() }),
           ...(node.getMode && { mode: node.getMode() }),
           ...(node.getStyle && { style: node.getStyle() }),
-        }
+        },
       };
     } else {
       return {
@@ -64,7 +69,8 @@ function LexicalEditor() {
         indent: node.getIndent ? node.getIndent() : 0,
         type: node.getType ? node.getType() : "unknown",
         version: node.getVersion ? node.getVersion() : 1,
-        ...((node.getTextContent && node.getType() === "text") && { text: node.getTextContent() }),
+        ...(node.getTextContent &&
+          node.getType() === "text" && { text: node.getTextContent() }),
         ...(node.getDetail && { detail: node.getDetail() }),
         ...(node.getMode && { mode: node.getMode() }),
         ...(node.getStyle && { style: node.getStyle() }),
@@ -76,13 +82,15 @@ function LexicalEditor() {
     // Load the selected edit ID contents into the editor whenever the selected edit ID changes
     if (editorInfo.selectedEditIndex[1]) {
       try {
-        const parsedEditorState: any = editor.parseEditorState(JSON.stringify(editorInfo.selectedEditIndex[1][0]));
+        const parsedEditorState: any = editor.parseEditorState(
+          JSON.stringify(editorInfo.selectedEditIndex[1][0])
+        );
         editor.update(() => {
           editor.setEditorState(parsedEditorState);
           editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
         });
       } catch (error) {
-        console.error('Error parsing editor state:', error);
+        console.error("Error parsing editor state:", error);
       }
     }
   }, [editorInfo.selectedEditIndex[0], editor]);
@@ -100,11 +108,12 @@ function LexicalEditor() {
 }
 
 export default function Editor() {
-  
   return (
-    <div id="editor-wrapper">
-      <Toolbar />
-      <LexicalEditor />
+    <div>
+      <div id="editor-wrapper">
+        <Toolbar />
+        <LexicalEditor />
+      </div>
     </div>
   );
 }
