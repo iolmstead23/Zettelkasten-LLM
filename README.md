@@ -18,11 +18,11 @@ The user would write short essays, which get labeled and indexed. There would be
 
 The dashboard for the app will include multiple features to use. The Filetree will keep track of the notes and allow for CRUD operations. The text editor will allow for editing/savings on notes.
 
-![Screenshot 2024-12-13 233032](https://github.com/user-attachments/assets/390b1a44-bf75-4cc9-8669-fb625afcecef)
+![Screenshot 2024-12-14 232335](https://github.com/user-attachments/assets/12fec235-8c0f-415b-ba16-6cf0da819d1e)
 
 The Plot page includes the Plotly plot that will project and orientate the notes data in a 3d space.
 
-![Screenshot 2024-12-13 235311](https://github.com/user-attachments/assets/97213785-14bf-4735-99f2-fa0f17dd0271)
+![Screenshot 2024-12-14 232357](https://github.com/user-attachments/assets/815ef71f-1270-49d9-9fee-48b26944c200)
 
 # TODO
 - Add custom sidebar width and allow it to be collapsible
@@ -33,5 +33,6 @@ The Plot page includes the Plotly plot that will project and orientate the notes
 - Create a history journal to record CRUD and Editor actions
 - Add logic for search bar, analytics page, and calendar
 - Polish up styles for better UI/UX
+- Add physics to orientate knowledge graph nodes (currently random x,y,z coordinates)
 - Add mobile support
 - Integrate LLM into UI after framework is built
