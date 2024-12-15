@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import FileTreeSidebar from '@/components/ui/FileTree/FileTreeSidebar';
-import { useDeleteToggleContext, useNewItemToggleContext, useNotifyToggleContext, useRenameToggleContext, useSelectedIDContext } from '@/components/ui/UIProvider';
+import { useDeleteToggleContext, useNewItemToggleContext, useNotifyToggleContext, useRenameToggleContext, useSelectedIndexContext } from '@/components/ui/UIProvider';
 import RenameFile from '@/components/ui/FileTree/RenameFileDialog';
 import NewItem from '@/components/ui/FileTree/NewItemDialog';
 import Notification from '@/components/ui/Notification';
@@ -20,7 +20,7 @@ export default function Dashboard() {
   /** This lets us turn the new item dialog on and off */
   const newItemToggle = useNewItemToggleContext();
   /** This keeps track of which item is selected on the filetree */
-  const selectedInfo = useSelectedIDContext();
+  const selectedInfo = useSelectedIndexContext();
   /** This allows us to trigger a notification */
   const notifyToggle = useNotifyToggleContext();
   
@@ -28,7 +28,7 @@ export default function Dashboard() {
     <main className="xl:pl-72 max-h-full">
       {(renameToggle.renameIsOpen===true) && (
         <div>
-          <RenameFile id={selectedInfo.selectedID[0] as number} name={selectedInfo.selectedID[1] as string} />
+          <RenameFile id={selectedInfo.selectedIndex[0] as number} name={selectedInfo.selectedIndex[1] as string} />
         </div>
       )}
       {(newItemToggle.newIsOpen===true) && (
@@ -38,7 +38,7 @@ export default function Dashboard() {
       )}
       {(deleteToggle.deleteIsOpen===true) && (
         <div>
-          <DeleteItem id={selectedInfo.selectedID[0] as number} />
+          <DeleteItem id={selectedInfo.selectedIndex[0] as number} />
         </div>
       )}
       {(notifyToggle.notifyToggle==true) && (

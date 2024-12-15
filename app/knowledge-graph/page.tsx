@@ -19,7 +19,8 @@ const Plot = dynamic(() => import("react-plotly.js"), {
 
 const PlotlyChart = () => {
   const [plotData, setPlotData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Add loading state
+  const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
+  const [isPlotRendering, setIsPlotRendering] = useState<boolean>(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const { nodes } = useKnowledgeGraphContext();
@@ -27,7 +28,6 @@ const PlotlyChart = () => {
   // Load initial empty plot structure
   useEffect(() => {
     const loadEmptyPlot = async () => {
-      setIsLoading(true);
       try {
         const response = await fetch("/emptyPlot.json");
         if (!response.ok) {
@@ -38,25 +38,29 @@ const PlotlyChart = () => {
       } catch (error) {
         console.error("Error loading empty plot:", error);
       } finally {
-        setIsLoading(false);
+        setIsDataLoading(false);
       }
     };
     loadEmptyPlot();
   }, []);
 
+  const LoadingSpinner = ({ message }: { message: string }) => (
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+      <p className="text-lg text-gray-600">{message}</p>
+    </div>
+  );
+
   const renderContent = () => {
-    if (isLoading) {
+    if (isDataLoading) {
       return (
         <div className="w-full h-[800px] flex items-center justify-center border border-gray-200 rounded-lg bg-white">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-lg text-gray-600">Loading chart...</p>
-          </div>
+          <LoadingSpinner message="Loading Data..." />
         </div>
       );
     }
 
-    if (!finalPlotData) {
+    if (!plotData || !finalPlotData) {
       return (
         <div className="w-full h-[800px] flex items-center justify-center border border-gray-200 rounded-lg bg-white">
           <p className="text-lg text-gray-600">No data available</p>
@@ -70,6 +74,11 @@ const PlotlyChart = () => {
         className="w-full h-[800px] border border-gray-200 rounded-lg bg-white"
         style={{ minHeight: "800px" }}
       >
+        {isPlotRendering && (
+          <div className="w-full h-[800px] flex items-center justify-center border border-gray-200 rounded-lg bg-white">
+            <LoadingSpinner message="Rendering Plot..." />
+          </div>
+        )}
         <Plot
           data={finalPlotData.data}
           layout={{
@@ -84,8 +93,21 @@ const PlotlyChart = () => {
             scrollZoom: true,
           }}
           style={{ width: "100%", height: "100%" }}
-          onInitialized={() => setIsLoading(false)}
-          onUpdate={() => setIsLoading(false)}
+          onInitialized={(figure) => {
+            setIsPlotRendering(false);
+          }}
+          onUpdate={(figure) => {
+            setIsPlotRendering(false);
+          }}
+          onError={() => {
+            setIsPlotRendering(false);
+          }}
+          onRedraw={() => {
+            setIsPlotRendering(true);
+          }}
+          onAfterPlot={() => {
+            setIsPlotRendering(false);
+          }}
         />
       </div>
     );
@@ -94,6 +116,7 @@ const PlotlyChart = () => {
   // Update plot when nodes or edges change  // Update plot when nodes change
   const getUpdatedPlotData = useCallback(() => {
     if (!plotData || !nodes?.nodes) return null;
+    setIsPlotRendering(true);
 
     const updatedPlot = {
       ...plotData,
@@ -167,6 +190,7 @@ const PlotlyChart = () => {
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
+        setIsPlotRendering(true);
         const newDimensions = {
           width: containerRef.current.clientWidth,
           height: Math.max(containerRef.current.clientHeight, 800),
@@ -189,22 +213,7 @@ const PlotlyChart = () => {
     [getUpdatedPlotData]
   );
 
-  return (
-    <div className="w-full h-screen p-4 bg-white">
-      <Suspense
-        fallback={
-          <div className="w-full h-[800px] flex items-center justify-center border border-gray-200 rounded-lg bg-white">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p className="text-lg text-gray-600">Loading chart...</p>
-            </div>
-          </div>
-        }
-      >
-        {renderContent()}
-      </Suspense>
-    </div>
-  );
+  return <div className="w-full h-screen p-4 bg-white">{renderContent()}</div>;
 };
 
 export default PlotlyChart;

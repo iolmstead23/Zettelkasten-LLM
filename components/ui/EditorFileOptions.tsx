@@ -20,7 +20,7 @@ interface FileTreeObject {
 
 export default function EditorFileOptions() {
   const filetreeContext: any = useFileTreeContext();
-  const selectedEditID = useSelectedEditContext();
+  const selectedEditIndex = useSelectedEditContext();
   const notifyContent = useNotifyContentContext();
   const notifyToggle = useNotifyToggleContext();
   const fileLocation = useFileLocationContext();
@@ -30,7 +30,7 @@ export default function EditorFileOptions() {
   // components/ui/EditorFileOptions.tsx
   async function save(): Promise<void> {
     try {
-      if (selectedEditID.selectedEditID[0] === -1) return;
+      if (selectedEditIndex.selectedEditIndex[0] === -1) return;
 
       // Show loading state
       notifyContent.setNotifyContent(["info", "Saving..."]);
@@ -39,8 +39,8 @@ export default function EditorFileOptions() {
       await filetreeContext.dispatch({
         type: "save_file",
         payload: {
-          id: selectedEditID.selectedEditID[0],
-          contents: selectedEditID.selectedEditID[1],
+          id: selectedEditIndex.selectedEditIndex[0],
+          contents: selectedEditIndex.selectedEditIndex[1],
         },
       });
 
@@ -74,15 +74,15 @@ export default function EditorFileOptions() {
 
   // Get the name of the currently selected file being edited and updating the state
   useEffect(() => {
-    const fileId = selectedEditID.selectedEditID[0];
+    const fileId = selectedEditIndex.selectedEditIndex[0];
     // If the file is not found or the file is not being edited, set the name to an empty string and reset the editors state
     if (fileId === -1 || !fileExists(filetreeContext.state.files, fileId)) {
       selectedEditName.current = "";
     } else {
       selectedEditName.current =
-        (selectedEditID.selectedEditID[2] as string) ?? "";
+        (selectedEditIndex.selectedEditIndex[2] as string) ?? "";
     }
-  }, [selectedEditID.selectedEditID, filetreeContext.state.files]);
+  }, [selectedEditIndex.selectedEditIndex, filetreeContext.state.files]);
 
   // Array of items to be displayed in the dropdown menu
   const items: { name: string; action: () => void }[] = [

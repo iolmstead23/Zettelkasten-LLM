@@ -79,7 +79,7 @@ declare module "@/types" {
       | "delete_file"
       | "sort_index"
       | "save_file";
-    selectID?: number;
+    selectIndex?: number;
     payload?: any;
     count?: number;
     fileFound?: boolean;
@@ -120,14 +120,14 @@ declare module "@/types" {
     dispatch: React.Dispatch<Action>;
   }
 
-  export interface SelectedIDState {
-    selectedID: [number, string];
-    setSelectedID: (e: [number, string]) => void;
+  export interface selectedIndexState {
+    selectedIndex: [number, string];
+    setSelectedIndex: (e: [number, string]) => void;
   }
 
   export interface SelectedEditIDState {
-    selectedEditID: [number, Object, string]; // Add content as the fourth element
-    setSelectedEditID: (e: [number, Object, string]) => void;
+    selectedEditIndex: [number, Object, string]; // Add content as the fourth element
+    setSelectedEditIndex: (e: [number, Object, string]) => void;
   }
 
   export interface RenameToggleState {

@@ -28,7 +28,7 @@ function LexicalEditor() {
     editorState.read(() => {
       const root = $getRoot();
       text.current = formatNode(root);
-      editorInfo.setSelectedEditID([editorInfo.selectedEditID[0], text.current, editorInfo.selectedEditID[2]]);
+      editorInfo.setSelectedEditIndex([editorInfo.selectedEditIndex[0], text.current, editorInfo.selectedEditIndex[2]]);
     });
     return rootTree;
   }
@@ -74,9 +74,9 @@ function LexicalEditor() {
 
   useEffect(() => {
     // Load the selected edit ID contents into the editor whenever the selected edit ID changes
-    if (editorInfo.selectedEditID[1]) {
+    if (editorInfo.selectedEditIndex[1]) {
       try {
-        const parsedEditorState: any = editor.parseEditorState(JSON.stringify(editorInfo.selectedEditID[1][0]));
+        const parsedEditorState: any = editor.parseEditorState(JSON.stringify(editorInfo.selectedEditIndex[1][0]));
         editor.update(() => {
           editor.setEditorState(parsedEditorState);
           editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
@@ -85,7 +85,7 @@ function LexicalEditor() {
         console.error('Error parsing editor state:', error);
       }
     }
-  }, [editorInfo.selectedEditID[0], editor]);
+  }, [editorInfo.selectedEditIndex[0], editor]);
 
   return (
     <div>

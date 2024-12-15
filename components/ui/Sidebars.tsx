@@ -14,6 +14,7 @@ import Profile from "@/components/ui//Profile";
 import Link from "next/link";
 import Image from "next/image";
 import Search from "@/components/ui/Searchbar";
+import { usePathname } from "next/navigation";
 
 const navigation = [
   // Turn on more features as they are developed
@@ -23,7 +24,12 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: HomeIcon, current: true },
   { name: "Calendar", href: "/calender", icon: CalendarIcon, current: false },
   { name: "Reports", href: "/analytics", icon: ChartBarIcon, current: false },
-  {name: "Graph", href: "/knowledge-graph", icon: ChartPieIcon, current: false,},
+  {
+    name: "Graph",
+    href: "/knowledge-graph",
+    icon: ChartPieIcon,
+    current: false,
+  },
 ];
 
 /** I have no idea what this does */
@@ -35,6 +41,15 @@ function classNames(...classes: any) {
 export default function Sidebars() {
   /** This allows us to toggle the sidebar open and close */
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Function to check if a nav item is current
+  const isCurrentPage = (href: string) => {
+    if (href === "/") {
+      return pathname === href;
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
     <>
@@ -108,7 +123,7 @@ export default function Sidebars() {
                           <Link
                             href={item.href}
                             className={classNames(
-                              item.current
+                              isCurrentPage(item.href)
                                 ? "bg-gray-800 text-white"
                                 : "text-gray-400 hover:text-white hover:bg-gray-800",
                               "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold"
@@ -150,7 +165,7 @@ export default function Sidebars() {
                 <Link
                   href={item.href}
                   className={classNames(
-                    item.current
+                    isCurrentPage(item.href)
                       ? "bg-gray-800 text-white"
                       : "text-gray-400 hover:text-white hover:bg-gray-800",
                     "group flex gap-x-3 rounded-md p-3 text-sm leading-6 font-semibold"

@@ -8,7 +8,6 @@ import React, {
   useEffect,
   useContext,
   useReducer,
-  useRef,
   useCallback,
 } from "react";
 import { Node, Edge } from "@/types";
@@ -16,7 +15,7 @@ import {
   Action,
   KnowledgeGraphAction,
   FileTreeState,
-  SelectedIDState,
+  selectedIndexState,
   SelectedEditIDState,
   RenameToggleState,
   NewItemToggleState,
@@ -30,7 +29,7 @@ import {
   FileTreeObject,
   GraphData,
 } from "@/types";
-import { getRandomValues, randomInt } from "crypto";
+import { error } from "console";
 
 // Add these helper functions at the top of UIProvider.tsx, after your interfaces
 function dispatchCombined(
@@ -45,7 +44,9 @@ function dispatchCombined(
 
 // Create context for file tree, selected file, and rename toggle
 const FileTreeContext = createContext<FileTreeState | undefined>(undefined);
-const SelectedIDContext = createContext<SelectedIDState | undefined>(undefined);
+const selectedIndexContext = createContext<selectedIndexState | undefined>(
+  undefined
+);
 const SelectedEditIDContext = createContext<SelectedEditIDState | undefined>(
   undefined
 );
@@ -137,12 +138,16 @@ function reducer(state: State, action: Action): State {
     }
 
     // if no selection then insert at bottom of root
-    if (action.selectID == -1) {
+    if (action.selectIndex == -1) {
       return [...state.files, action.payload];
     }
     // else dig through filetree until selected folder is found
     else {
-      return updateFolderContent(state.files, action.selectID!, action.payload);
+      return updateFolderContent(
+        state.files,
+        action.selectIndex!,
+        action.payload
+      );
     }
   }
 
@@ -193,7 +198,7 @@ function reducer(state: State, action: Action): State {
     // Set the ID of the file or folder to be deleted
     const itemID: number = action.payload?.id;
     // Set the ID of the editor
-    const editorID = action.payload?.editorID;
+    const editorIndex = action.payload?.editorIndex;
     // Used to reset the editor if the file being edited is deleted
     const setEditorID: (e: [number, string, string]) => {
       e: [number, string, string];
@@ -206,7 +211,7 @@ function reducer(state: State, action: Action): State {
     // check if file being edited is inside of a folder marked for deleting
     const checkEditor = (folders: FileTreeObject[]) => {
       folders.forEach((item: FileTreeObject) => {
-        if (item.type === "file" && item.id === editorID[0]) {
+        if (item.type === "file" && item.id === editorIndex[0]) {
           // Reset editor if the file being edited is inside a folder marked for deletion
           setEditorID([-1, "", ""]);
           setFileLocation([""]);
@@ -374,7 +379,7 @@ function reducer(state: State, action: Action): State {
     //** This keeps track of the folder directory of the file being edited */
     function getFilePath(
       fileTreeObjects: FileTreeObject[],
-      selectedId: number
+      selectedIndex: number
     ): string[] {
       let fileFound = false;
       let filePath: string[] = [];
@@ -384,7 +389,7 @@ function reducer(state: State, action: Action): State {
           objects.forEach((obj: FileTreeObject): any => {
             if (!fileFound) {
               if (obj.type === "file") {
-                if (obj.id === selectedId && !fileFound) {
+                if (obj.id === selectedIndex && !fileFound) {
                   fileFound = true;
                 }
               } else {
@@ -419,10 +424,10 @@ function reducer(state: State, action: Action): State {
       }
 
       // This sets the context for the sort function
-      const editorID = action.payload?.editorID;
+      const editorIndex = action.payload?.editorIndex;
       const setEditorID = action.payload?.setEditorID!;
-      const selectID = action.payload?.selectID;
-      const setSelectID = action.payload?.setSelectID!;
+      const selectIndex = action.payload?.selectIndex;
+      const setSelectIndex = action.payload?.setSelectIndex!;
       const setFileLocation = action.payload?.setSelectFileLocation!;
 
       // map through the tree using recursion on folders. Returns indexed filetree
@@ -433,19 +438,18 @@ function reducer(state: State, action: Action): State {
           const currentCount = action.count!;
 
           // Update editor
-          if (editorID && editorID[0] === item.id) {
-            setEditorID([currentCount, editorID[1], editorID[2]]);
+          if (editorIndex && editorIndex[0] === item.index) {
+            setEditorID([currentCount, editorIndex[1], editorIndex[2]]);
           }
 
           // Update filetree selection
-          if (selectID && selectID[0] === item.id) {
-            setSelectID([currentCount, selectID[1], selectID[2]]);
+          if (selectIndex && selectIndex[0] === item.index) {
+            setSelectIndex([currentCount, selectIndex[1], selectIndex[2]]);
           }
 
           /** Update file with new ID */
           return {
             ...item,
-            id: currentCount,
             index: currentCount,
           } as FileTreeObject;
         } else if (item.type === "folder") {
@@ -463,7 +467,6 @@ function reducer(state: State, action: Action): State {
 
           return {
             ...item,
-            id: currentCount,
             index: currentCount,
             contents: sortedContent,
           } as FileTreeObject;
@@ -478,8 +481,8 @@ function reducer(state: State, action: Action): State {
       });
 
       // update file location
-      if (editorID && editorID[0] !== -1) {
-        setFileLocation(getFilePath(fileMap, editorID[0]));
+      if (editorIndex && editorIndex[0] !== -1) {
+        setFileLocation(getFilePath(fileMap, editorIndex[0]));
       }
 
       return fileMap;
@@ -499,9 +502,6 @@ function reducer(state: State, action: Action): State {
       console.error("Error in sort_index:", error);
       return state;
     }
-
-    // Return alphabetized files with sorted indexes
-    return { files: sortFiles(alphabetizeFiles(state.files), action) };
   }
 
   // This is the main switch statement for the reducer function
@@ -544,8 +544,9 @@ function knowledgeGraphReducer(
           }
 
           if (item.type === "file" && item.id != undefined) {
+            const nodeId = item.id?.toString() || Date.now().toString();
             nodes.push({
-              id: item.id?.toString(),
+              id: nodeId,
               label: item.name,
               // Add random coordinates if none exist
               x: Math.random() * 10 - 5, // Random value between -5 and 5
@@ -582,13 +583,11 @@ function knowledgeGraphReducer(
   switch (action.type) {
     case "get_nodes":
       const newNodes = get_nodes(action.payload);
-      console.log("New nodes generated:", newNodes);
       return {
         nodes: newNodes,
       };
 
     case "insert_node":
-      console.log("Inserting new node:", action.payload);
       return {
         nodes: {
           nodes: [...state.nodes.nodes, action.payload],
@@ -639,11 +638,16 @@ const UIProvider = ({ children }: any) => {
   /** This stores the state of the file location */
   const [fileLocation, setFileLocation] = useState<string[]>([""]);
   /** This stores the state of the knowledge graph nodes */
-  const [nodes, setNodes] = useState<GraphData>({ nodes: [], edges: [] });
+  const [graphState, graphDispatch] = useReducer(knowledgeGraphReducer, {
+    nodes: { nodes: [], edges: [] },
+  });
   /** This stores the state of the filetree selection */
-  const [selectedID, setSelectedID] = useState<[number, string]>([-1, ""]);
+  const [selectedIndex, setSelectedIndex] = useState<[number, string]>([
+    -1,
+    "",
+  ]);
   /** This stores the state of the editors most recently saved file (This is used to change which file to edit) */
-  const [selectedEditID, setSelectedEditID] = useState<
+  const [selectedEditIndex, setSelectedEditIndex] = useState<
     [number, Object, string]
   >([-1, {}, ""]);
   /** This stores the toggle state of the Rename Dialog */
@@ -663,10 +667,6 @@ const UIProvider = ({ children }: any) => {
   ]);
   /** This gets the User data */
   const { user } = useUser();
-
-  const [graphState, graphDispatch] = useReducer(knowledgeGraphReducer, {
-    nodes: { nodes: [], edges: [] },
-  });
 
   /** This is the initial configuration for the Lexical text editor */
   const initialConfig = {
@@ -725,32 +725,42 @@ const UIProvider = ({ children }: any) => {
       const result = await response.json();
       dispatch({
         type: "get_files",
-        selectID: 0,
+        selectIndex: 0,
         payload: JSON.parse(result),
       });
     } else {
-      // console.error("Error fetching data");
+      console.error("Error fetching data");
     }
   };
 
   // If user state changes then change the filetree state
+  // Update this useEffect in UIProvider.tsx
   useEffect(() => {
     // grab data from database if user is logged in
     if (user) {
       getData().catch((e) => console.error("Error fetching data:", e));
-      // grab dummy data if no user
     } else {
+      // Create initial file with proper structure
+      const initialFile = {
+        index: 0,
+        id: Date.now(), // Ensure unique ID
+        type: "file",
+        name: "New File.md",
+        contents: fileContents,
+        edges: [],
+      };
+
+      // Update file tree
       dispatch({
         type: "get_files",
-        selectID: 0,
-        payload: [
-          {
-            id: 0,
-            type: "file",
-            name: "New File.md",
-            contents: [fileContents],
-          },
-        ],
+        selectIndex: 0,
+        payload: [initialFile],
+      });
+
+      // Update knowledge graph
+      graphDispatch({
+        type: "get_nodes",
+        payload: [initialFile],
       });
     }
 
@@ -765,10 +775,10 @@ const UIProvider = ({ children }: any) => {
       dispatch({
         type: "sort_index",
         payload: {
-          editorID: selectedEditID,
-          setEditorID: setSelectedEditID,
-          selectID: selectedID,
-          setSelectID: setSelectedID,
+          editorIndex: selectedEditIndex,
+          setEditorIndex: setSelectedEditIndex,
+          selectIndex: selectedIndex,
+          setSelectIndex: setSelectedIndex,
           selectFileLocation: fileLocation,
           setSelectFileLocation: setFileLocation,
         },
@@ -793,9 +803,11 @@ const UIProvider = ({ children }: any) => {
   // This is the main return statement for the UIProvider component
   return (
     <FileTreeContext.Provider value={{ state, dispatch }}>
-      <SelectedIDContext.Provider value={{ selectedID, setSelectedID }}>
+      <selectedIndexContext.Provider
+        value={{ selectedIndex, setSelectedIndex }}
+      >
         <SelectedEditIDContext.Provider
-          value={{ selectedEditID, setSelectedEditID }}
+          value={{ selectedEditIndex, setSelectedEditIndex }}
         >
           <RenameToggleContext.Provider
             value={{ renameIsOpen, setRenameIsOpen }}
@@ -832,7 +844,7 @@ const UIProvider = ({ children }: any) => {
             </NewItemToggleContext.Provider>
           </RenameToggleContext.Provider>
         </SelectedEditIDContext.Provider>
-      </SelectedIDContext.Provider>
+      </selectedIndexContext.Provider>
     </FileTreeContext.Provider>
   );
 };
@@ -849,11 +861,11 @@ export function useFileTreeContext() {
 }
 
 /** This lets other child components change the filetree selection */
-export function useSelectedIDContext() {
-  const context = useContext(SelectedIDContext);
+export function useSelectedIndexContext() {
+  const context = useContext(selectedIndexContext);
   if (context === undefined) {
     throw new Error(
-      "useSelectedIDContext must be used within a SelectedIDContextProvider"
+      "useSelectedIndexContext must be used within a selectedIndexContextProvider"
     );
   }
   return context;
@@ -961,29 +973,31 @@ export function useFileLocationContext() {
 export function useCombinedOperations() {
   const { dispatch: fileDispatch } = useFileTreeContext();
   const { dispatch: graphDispatch } = useKnowledgeGraphContext();
-  const { selectedID } = useSelectedIDContext();
+  const { selectedIndex } = useSelectedIndexContext();
 
   const handleAddFile = useCallback(
     (fileData: Partial<FileTreeObject>) => {
-      // Make fileData partial to allow incomplete objects
-      // Generate a unique ID
+      // Uniaue identifier to link graph nodes and filetree files together
       const newId = Date.now();
-      const selectedFolderId = selectedID[0] || -1;
+      const selectedFolderIndex = selectedIndex[0] || -1;
 
       // Create a complete FileTreeObject
       const completeFileData: FileTreeObject = {
+        index: 0,
         id: newId,
-        index: newId,
         type: fileData.type || "file",
         name: fileData.name || "New File.md",
-        contents: fileData.contents || "",
+        contents:
+          fileData.type === "file"
+            ? fileData.contents || "" // Provide default empty string if undefined
+            : [], // Empty array for non-file types
         edges: fileData.edges || [],
       };
 
       // File Tree Operation
       const fileAction: Action = {
         type: "insert_file",
-        selectID: selectedFolderId,
+        selectIndex: selectedFolderIndex,
         payload: completeFileData,
       };
 
@@ -1001,7 +1015,7 @@ export function useCombinedOperations() {
 
       dispatchCombined(fileDispatch, graphDispatch!, fileAction, graphAction);
     },
-    [fileDispatch, graphDispatch]
+    [fileDispatch, graphDispatch, selectedIndex]
   );
 
   const handleDeleteFile = useCallback(

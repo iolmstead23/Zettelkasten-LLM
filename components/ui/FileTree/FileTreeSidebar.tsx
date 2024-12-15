@@ -13,7 +13,7 @@ import {
 } from "react-icons/di";
 import {
   useFileTreeContext,
-  useSelectedIDContext,
+  useSelectedIndexContext,
   useNewItemToggleContext,
 } from "@/components/ui/UIProvider";
 import EmptyFiles from "@/components/ui/EmptyFiles";
@@ -83,11 +83,11 @@ const File = ({
 
   /** Function to handle file selection */
   const handleSelection = () => {
-    selection.setSelectedID([id, name]);
+    selection.setSelectedIndex([id, name]);
   };
 
   /** Check if file is selected */
-  const isSelected: boolean = selection.selectedID[0] == id ? true : false;
+  const isSelected: boolean = selection.selectedIndex[0] == id ? true : false;
 
   // Render file component
   // In the File component, replace the existing return with:
@@ -139,11 +139,11 @@ const Folder = ({
 
   /** Function to handle file selection */
   const handleSelection = () => {
-    selection.setSelectedID([id, name]);
+    selection.setSelectedIndex([id, name]);
   };
 
   // Check if folder is selected
-  const isSelected: boolean = selection.selectedID[0] == id ? true : false;
+  const isSelected: boolean = selection.selectedIndex[0] == id ? true : false;
 
   // Render folder component
   // In the Folder component, replace the existing return with:
@@ -244,7 +244,7 @@ Tree.Root = Root;
 /** This is the container that provides the FileTree logic */
 export default function FileTreeSidebar() {
   const files: any = useFileTreeContext();
-  const selection = useSelectedIDContext();
+  const selection = useSelectedIndexContext();
   const newItemToggle = useNewItemToggleContext();
 
   // Add data validation and transformation
@@ -256,7 +256,7 @@ export default function FileTreeSidebar() {
         <div
           className="pl-5 flex items-center"
           onClick={() => {
-            selection?.setSelectedID([-1, ""]);
+            selection?.setSelectedIndex([-1, ""]);
             newItemToggle?.setNewIsOpen(true);
           }}
         >

@@ -7,7 +7,7 @@ import {
   useCombinedOperations,
   useFileTreeContext,
   useNewItemToggleContext,
-  useSelectedIDContext,
+  useSelectedIndexContext,
   useSortIndexContext,
 } from "@/components/ui/UIProvider";
 import { FileTreeObject } from "@/types";
@@ -19,14 +19,11 @@ export default function NewItem() {
   /** This enables us to toggle the creation modal open and close */
   const newToggleContext: any = useNewItemToggleContext();
 
-  /** This enables the manager to read from the filetree */
-  const fileContext: any = useFileTreeContext();
-
   /** This enables us to sort the index */
   const sortIndex = useSortIndexContext();
 
   /** This enables the manager to read and write selection */
-  const selectionIDContext = useSelectedIDContext();
+  const selectionIDContext = useSelectedIndexContext();
 
   /** This keeps track of the cancel button */
   const cancelButtonRef = useRef(null);
@@ -88,11 +85,10 @@ export default function NewItem() {
       const fileData = {
         type: "file",
         name: fileName.endsWith(".md") ? fileName : `${fileName}.md`,
-        contents: fileContents,
-        selectID: selectionIDContext.selectedID[0], // Pass the selected folder ID
+        contents: [fileContents],
+        selectIndex: selectionIDContext.selectedIndex[0], // Pass the selected folder ID
       };
 
-      // Only use handleAddFile, remove the separate fileContext.dispatch
       handleAddFile(fileData);
     } else {
       // Create folder
@@ -100,7 +96,7 @@ export default function NewItem() {
         type: "folder",
         name: newName || "New Folder",
         contents: [],
-        selectID: selectionIDContext.selectedID[0], // Pass the selected folder ID
+        selectIndex: selectionIDContext.selectedIndex[0], // Pass the selected folder ID
       };
 
       handleAddFile(folderData);

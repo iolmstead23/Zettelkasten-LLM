@@ -19,7 +19,7 @@ const DeleteItem = ({ id }: { id: number }) => {
   const cancelButtonRef = useRef(null);
   const notifyToggle = useNotifyToggleContext();
   const notifyContent = useNotifyContentContext();
-  const editorID = useSelectedEditContext();
+  const editorIndex = useSelectedEditContext();
   const [editor] = useLexicalComposerContext();
   const fileLocationContext = useFileLocationContext();
   // State to force re-render
@@ -92,8 +92,8 @@ const DeleteItem = ({ id }: { id: number }) => {
                         type: "delete_file",
                         payload: {
                           id: id,
-                          editorID: editorID.selectedEditID,
-                          setEditor: editorID.setSelectedEditID,
+                          editorIndex: editorIndex.selectedEditIndex,
+                          setEditor: editorIndex.setSelectedEditIndex,
                           editorContents: editor,
                           setSelectFileLocation:
                             fileLocationContext.setFileLocation,

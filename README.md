@@ -25,10 +25,12 @@ The Plot page includes the Plotly plot that will project and orientate the notes
 ![Screenshot 2024-12-13 235311](https://github.com/user-attachments/assets/97213785-14bf-4735-99f2-fa0f17dd0271)
 
 # TODO
-- Add custom sidebar width and allow it to be collapsable
+- Add custom sidebar width and allow it to be collapsible
+- Enforce Unique file names
+- Enforce 2 Layer Folder limit
 - Add edge creation using Editor toolbar feature
 - Store metrics such as last save and total word count
-- Create a history journal to recored CRUD and Editor actions
+- Create a history journal to record CRUD and Editor actions
 - Add logic for searchbar, analytics page, and calendar
 - Polish up styles for better UI/UX
 - Add mobile support

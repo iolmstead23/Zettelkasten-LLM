@@ -49,7 +49,7 @@ export default function FileDropdown({id,data,name}:{id:number,data:any,name:str
                                         'block px-4 py-2 text-sm'
                                     )}
                                     onClick={() => {
-                                        selectEditContext.setSelectedEditID([id, data, name]);
+                                        selectEditContext.setSelectedEditIndex([id, data, name]);
                                         // This sets the file location to the root
                                         fileLocation.setFileLocation(['']);
                                         sortIndex.setIndexSort(true);
