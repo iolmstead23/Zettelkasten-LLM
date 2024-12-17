@@ -10,13 +10,17 @@ import React, {
   useReducer,
   useCallback,
 } from "react";
-import { Node, Edge } from "@/types";
+import {
+  Node,
+  Edge,
+  SelectedEditIndexType,
+  SelectedEditIndexContextType,
+} from "@/types";
 import {
   Action,
   KnowledgeGraphAction,
   FileTreeState,
-  selectedIndexState,
-  SelectedEditIDState,
+  SelectedIndexState,
   RenameToggleState,
   NewItemToggleState,
   DeleteToggleState,
@@ -29,7 +33,12 @@ import {
   FileTreeObject,
   GraphData,
 } from "@/types";
-import { error } from "console";
+import { EdgeNode } from "../editor/EdgeNode";
+import { HeadingNode, QuoteNode } from "@lexical/rich-text";
+import { ListNode, ListItemNode } from "@lexical/list";
+import { CodeNode } from "@lexical/code";
+import { TableNode, TableCellNode, TableRowNode } from "@lexical/table";
+import { AutoLinkNode } from "@lexical/link";
 
 // Add these helper functions at the top of UIProvider.tsx, after your interfaces
 function dispatchCombined(
@@ -44,36 +53,53 @@ function dispatchCombined(
 
 // Create context for file tree, selected file, and rename toggle
 const FileTreeContext = createContext<FileTreeState | undefined>(undefined);
-const selectedIndexContext = createContext<selectedIndexState | undefined>(
+
+const selectedIndexContext = createContext<SelectedIndexState | undefined>(
   undefined
 );
-const SelectedEditIDContext = createContext<SelectedEditIDState | undefined>(
-  undefined
-);
+
+const SelectedEditIndexContext = createContext<
+  SelectedEditIndexContextType | undefined
+>(undefined);
+
 const RenameToggleContext = createContext<RenameToggleState | undefined>(
   undefined
 );
+
 const NewItemToggleContext = createContext<NewItemToggleState | undefined>(
   undefined
 );
+
 const DeleteToggleContext = createContext<DeleteToggleState | undefined>(
   undefined
 );
+
 const IndexSortContext = createContext<IndexSortState | undefined>(undefined);
+
 const NotificationToggleContext = createContext<
   NotificationToggleState | undefined
 >(undefined);
+
 const NotificationContentContext = createContext<
   NotificationContentState | undefined
 >(undefined);
+
 const KnowledgeGraphContext = createContext<KnowledgeGraphState>({
   nodes: { nodes: [], edges: [] },
 });
+
 const FileLocationContext = createContext<FileLocationState | undefined>(
   undefined
 );
 
-/** This reducer function is responsible for managing the filetree state */
+const SaveContext = createContext<
+  | {
+      saveFile: () => Promise<void>;
+    }
+  | undefined
+>(undefined);
+
+/** This reducer function is responsible for managing the file tree state */
 function reducer(state: State, action: Action): State {
   /** This renames file and folders */
   function rename_file(state: State, action: Action): any {
@@ -116,6 +142,40 @@ function reducer(state: State, action: Action): State {
       index: number,
       payload: any
     ): any[] {
+      const defaultContent = {
+        root: {
+          children: [
+            {
+              children: [
+                {
+                  detail: 0,
+                  format: 0,
+                  mode: "normal",
+                  style: "",
+                  text: "",
+                  type: "text",
+                  version: 1,
+                },
+              ],
+              direction: "ltr",
+              format: "",
+              indent: 0,
+              type: "paragraph",
+              version: 1,
+            },
+          ],
+          direction: "ltr",
+          format: "",
+          indent: 0,
+          type: "root",
+          version: 1,
+        },
+      };
+
+      if (action.payload && !action.payload.contents) {
+        action.payload.contents = defaultContent;
+      }
+
       return files.map((item: any) => {
         if (item.type === "folder") {
           if (item.id == index) {
@@ -152,31 +212,32 @@ function reducer(state: State, action: Action): State {
   }
 
   function save_file(state: State, action: Action): any {
-    // Helper function to filter out empty children
-    function filterEmptyChildren(contents: Object): Object {
-      if (typeof contents === "object" && contents !== null) {
-        const filteredContents: any = {};
-        for (const [key, value] of Object.entries(contents)) {
-          if (value.type === "folder") {
-            value.contents = filterEmptyChildren(value.contents);
-            // Only include the folder if it has non-empty contents
-            if (Object.keys(value.contents).length > 0) {
-              filteredContents[key] = value;
-            }
-          } else {
-            filteredContents[key] = value;
-          }
-        }
-        return [filteredContents];
-      }
-      return contents;
-    }
-
     const updatedFiles = state.files.map((item: FileTreeObject) => {
-      if (item.type === "file" && item.id === action.payload?.id) {
+      if (item.type === "file" && item.id === action.payload?.index) {
+        // Ensure edges are properly merged and saved
+        const currentEdges = item.edges || [];
+        const newEdges = action.payload.edges || [];
+
+        // Merge edges, ensuring no duplicates and maintaining both source and target info
+        const mergedEdges = [
+          ...currentEdges,
+          ...newEdges.filter(
+            (newEdge: any) =>
+              !currentEdges.some(
+                (existingEdge) =>
+                  existingEdge.source === newEdge.source &&
+                  existingEdge.target === newEdge.target
+              )
+          ),
+        ];
+
+        // Create a deep copy of contents to preserve custom node attributes
+        const deepCopyContents = JSON.parse(JSON.stringify(action.payload.contents || item.contents));
+
         return {
           ...item,
-          contents: filterEmptyChildren(action.payload?.contents),
+          contents: deepCopyContents, // Use deep copy to preserve all node attributes
+          edges: mergedEdges,
         };
       } else if (item.type === "folder") {
         return {
@@ -247,11 +308,6 @@ function reducer(state: State, action: Action): State {
 
       // Helper function to recursively filter out files/folders
       const filterItems = (items: FileTreeObject[]): FileTreeObject[] => {
-        if (!Array.isArray(items)) {
-          console.error("filterItems received non-array:", items);
-          return [];
-        }
-
         return items
           .map((item: FileTreeObject) => {
             if (item.type === "folder") {
@@ -270,11 +326,6 @@ function reducer(state: State, action: Action): State {
           });
       };
 
-      if (!Array.isArray(state.files)) {
-        console.error("State.files is not an array:", state.files);
-        return state;
-      }
-
       const newFiles = filterItems(state.files);
 
       return {
@@ -287,7 +338,7 @@ function reducer(state: State, action: Action): State {
     }
   }
 
-  /** This reindexes the filetree files and folders. This is the most important function. */
+  /** This reindexes the file tree files and folders. This is the most important function. */
   function sort_index(state: State, action: Action): State {
     // Initialize count with the action count or 0
     action.count = action.count ?? 0;
@@ -295,21 +346,10 @@ function reducer(state: State, action: Action): State {
 
     /** This alphabetizes the filetrees in their folder before reindexing begins */
     const alphabetizeFiles = (files: FileTreeObject[]): FileTreeObject[] => {
-      if (!Array.isArray(files)) {
-        console.warn("Invalid files array in alphabetizeFiles:", files);
-        return [];
-      }
-
       /** create sorted list of items in current directory */
       const sorted_dir = (files: FileTreeObject[]) =>
         files
           .filter((file): file is FileTreeObject => {
-            // Filter out invalid items
-            if (!file || typeof file !== "object") {
-              console.warn("Invalid file object:", file);
-              return false;
-            }
-
             // Handle nested newFileData structure
             if ("newFileData" in file) {
               const newFileData = (file as any).newFileData;
@@ -405,11 +445,6 @@ function reducer(state: State, action: Action): State {
       files: FileTreeObject[],
       action: Action
     ): FileTreeObject[] {
-      if (!Array.isArray(files)) {
-        console.warn("Invalid files array in sortFiles:", files);
-        return [];
-      }
-
       // This sets the context for the sort function
       const editorIndex = action.payload?.editorIndex;
       const setEditorIndex = action.payload?.setEditorIndex!;
@@ -476,12 +511,6 @@ function reducer(state: State, action: Action): State {
     }
 
     try {
-      // Ensure we have a valid files array before processing
-      if (!Array.isArray(state.files)) {
-        console.warn("Invalid state.files:", state.files);
-        return { files: [] };
-      }
-
       // Return alphabetized files with sorted indexes
       const sortedFiles = sortFiles(alphabetizeFiles(state.files), action);
       return { files: sortedFiles };
@@ -522,26 +551,38 @@ function knowledgeGraphReducer(
 
       const nodes: Node[] = [];
       const edges: Edge[] = [];
+      const processedEdges = new Set<string>();
 
       try {
         data.forEach((item: FileTreeObject) => {
-          if (!item || typeof item !== "object") {
-            console.warn("Invalid item in data:", item);
-            return;
-          }
-
           if (item.type === "file" && item.id != undefined) {
             const nodeId = item.id?.toString() || Date.now().toString();
             nodes.push({
               id: nodeId,
-              label: item.name,
-              // Add random coordinates if none exist
-              x: Math.random() * 10 - 5, // Random value between -5 and 5
+              label: item.name!,
+              x: Math.random() * 10 - 5,
               y: Math.random() * 10 - 5,
               z: Math.random() * 10 - 5,
             });
+
+            // Process edges
             if (item.edges && Array.isArray(item.edges)) {
-              edges.push(...item.edges);
+              item.edges.forEach((edge) => {
+                const edgeKey = `${edge.source}-${edge.target}`;
+                const reverseEdgeKey = `${edge.target}-${edge.source}`;
+
+                // Only add edge if we haven't processed it or its reverse
+                if (
+                  !processedEdges.has(edgeKey) &&
+                  !processedEdges.has(reverseEdgeKey)
+                ) {
+                  edges.push({
+                    source: edge.source.toString(),
+                    target: edge.target.toString(),
+                  });
+                  processedEdges.add(edgeKey);
+                }
+              });
             }
           } else if (
             item.type === "folder" &&
@@ -567,6 +608,17 @@ function knowledgeGraphReducer(
     return { nodes, edges };
   }
 
+  function insert_edge() {
+    const newState = {
+      nodes: {
+        nodes: [...state.nodes.nodes],
+        edges: [...state.nodes.edges, action.payload],
+      },
+    };
+
+    return newState;
+  }
+
   switch (action.type) {
     case "get_nodes":
       const newNodes = get_nodes(action.payload);
@@ -583,12 +635,7 @@ function knowledgeGraphReducer(
       };
 
     case "insert_edge":
-      return {
-        nodes: {
-          nodes: [...state.nodes.nodes],
-          edges: [...state.nodes.edges, action.payload],
-        },
-      };
+      return insert_edge();
     case "delete_node":
       return {
         nodes: {
@@ -628,22 +675,22 @@ const UIProvider = ({ children }: any) => {
   const [graphState, graphDispatch] = useReducer(knowledgeGraphReducer, {
     nodes: { nodes: [], edges: [] },
   });
-  /** This stores the state of the filetree selection */
+  /** This stores the state of the file tree selection */
   const [selectedIndex, setSelectedIndex] = useState<[number, string]>([
     -1,
     "",
   ]);
+
   /** This stores the state of the editors most recently saved file (This is used to change which file to edit) */
-  const [selectedEditIndex, setSelectedEditIndex] = useState<
-    [number, Object, string]
-  >([-1, {}, ""]);
+  const [selectedEditIndex, setSelectedEditIndex] =
+    useState<SelectedEditIndexType>({ index: -1, contents: {}, name: "" });
   /** This stores the toggle state of the Rename Dialog */
   const [renameIsOpen, setRenameIsOpen] = useState<boolean>(false);
   /** This stores the toggle state of the Create Dialog */
   const [newIsOpen, setNewIsOpen] = useState<boolean>(false);
   /** This stores the toggle state of the Delete Dialog */
   const [deleteIsOpen, setDeleteIsOpen] = useState<boolean>(false);
-  /** This stores the toggle state of the reducer's index sort (This is ran after every time the filetree is edited) */
+  /** This stores the toggle state of the reducer's index sort (This is ran after every time the file tree is edited) */
   const [indexSort, setIndexSort] = useState<boolean>(false);
   /** This stores the toggle state of the Notification Box */
   const [notifyToggle, setNotifyToggle] = useState<boolean>(false);
@@ -672,6 +719,19 @@ const UIProvider = ({ children }: any) => {
     onError: (error: any) => {
       console.log(error);
     },
+    nodes: [
+      HeadingNode,
+      QuoteNode,
+      ListNode,
+      ListItemNode,
+      CodeNode,
+      TableNode,
+      TableCellNode,
+      TableRowNode,
+      EdgeNode,
+      AutoLinkNode,
+    ],
+    onerror: (error: any) => console.error(error),
   };
 
   /* This is the format that Lexical needs to use */
@@ -710,18 +770,53 @@ const UIProvider = ({ children }: any) => {
     const response = await fetch("/api/db", { method: "GET" });
     if (response.ok) {
       const result = await response.json();
+      const parsedData = JSON.parse(result);
+
+      // Ensure each file has proper content structure
+      const processedData = parsedData.map((file: FileTreeObject) => {
+        if (
+          file.type === "file" &&
+          (!file.contents || Object.keys(file.contents).length === 0)
+        ) {
+          return {
+            ...file,
+            contents: fileContents, // Use the default Lexical structure
+          };
+        }
+        return file;
+      });
+
       dispatch({
         type: "get_files",
         selectIndex: 0,
-        payload: JSON.parse(result),
+        payload: processedData,
       });
     } else {
       console.error("Error fetching data");
     }
   };
 
-  // If user state changes then change the filetree state
-  // Update this useEffect in UIProvider.tsx
+  const saveFile = useCallback(async () => {
+    try {
+      if (selectedEditIndex.index === -1) return;
+
+      await dispatch({
+        type: "save_file",
+        payload: {
+          index: selectedEditIndex.index,
+          contents: selectedEditIndex.contents,
+        },
+      });
+
+      setNotifyContent(["success", "Save success!"]);
+    } catch (error) {
+      setNotifyContent(["error", "Save failed"]);
+    } finally {
+      setNotifyToggle(true);
+    }
+  }, [selectedEditIndex, dispatch, setNotifyContent, setNotifyToggle]);
+
+  // Ensure each file has proper content structure
   useEffect(() => {
     // grab data from database if user is logged in
     if (user) {
@@ -758,7 +853,7 @@ const UIProvider = ({ children }: any) => {
   // triggers on indexSort toggle change
   useEffect(() => {
     if (indexSort == true) {
-      // Tells the reducer function that the filetree needs to be resorted
+      // Tells the reducer function that the file tree needs to be resorted
       dispatch({
         type: "sort_index",
         payload: {
@@ -776,10 +871,9 @@ const UIProvider = ({ children }: any) => {
     }
   }, [indexSort]);
 
-  // Modify the effect that updates the graph
+  // Updated the graph when new changes are made
   useEffect(() => {
     if (state.files.length > 0) {
-      console.log("Updating graph state with files:", state.files); // Debug log
       graphDispatch({
         type: "get_nodes",
         payload: state.files,
@@ -787,13 +881,12 @@ const UIProvider = ({ children }: any) => {
     }
   }, [state.files]);
 
-  // This is the main return statement for the UIProvider component
   return (
     <FileTreeContext.Provider value={{ state, dispatch }}>
       <selectedIndexContext.Provider
         value={{ selectedIndex, setSelectedIndex }}
       >
-        <SelectedEditIDContext.Provider
+        <SelectedEditIndexContext.Provider
           value={{ selectedEditIndex, setSelectedEditIndex }}
         >
           <RenameToggleContext.Provider
@@ -820,7 +913,9 @@ const UIProvider = ({ children }: any) => {
                           value={{ fileLocation, setFileLocation }}
                         >
                           <LexicalComposer initialConfig={initialConfig}>
-                            {children}
+                            <SaveContext.Provider value={{ saveFile }}>
+                              {children}
+                            </SaveContext.Provider>
                           </LexicalComposer>
                         </FileLocationContext.Provider>
                       </KnowledgeGraphContext.Provider>
@@ -830,13 +925,13 @@ const UIProvider = ({ children }: any) => {
               </DeleteToggleContext.Provider>
             </NewItemToggleContext.Provider>
           </RenameToggleContext.Provider>
-        </SelectedEditIDContext.Provider>
+        </SelectedEditIndexContext.Provider>
       </selectedIndexContext.Provider>
     </FileTreeContext.Provider>
   );
 };
 
-/** This lets other child components edit and change filetree state */
+/** This lets other child components edit and change file tree state */
 export function useFileTreeContext() {
   const context = useContext(FileTreeContext);
   if (context === undefined) {
@@ -847,7 +942,7 @@ export function useFileTreeContext() {
   return context;
 }
 
-/** This lets other child components change the filetree selection */
+/** This lets other child components change the file tree selection */
 export function useSelectedIndexContext() {
   const context = useContext(selectedIndexContext);
   if (context === undefined) {
@@ -860,7 +955,7 @@ export function useSelectedIndexContext() {
 
 /** This lets other child components change the editor selection */
 export function useSelectedEditContext() {
-  const context = useContext(SelectedEditIDContext);
+  const context = useContext(SelectedEditIndexContext);
   if (context === undefined) {
     throw new Error(
       "useSelectedEditContext must be used within a SelectedEditIDContextProvider"
@@ -961,10 +1056,11 @@ export function useCombinedOperations() {
   const { dispatch: fileDispatch } = useFileTreeContext();
   const { dispatch: graphDispatch } = useKnowledgeGraphContext();
   const { selectedIndex } = useSelectedIndexContext();
+  const { state } = useFileTreeContext();
 
   const handleAddFile = useCallback(
     (fileData: Partial<FileTreeObject>) => {
-      // Uniaue identifier to link graph nodes and filetree files together
+      // Unique identifier to link graph nodes and file tree files together
       const newId = Date.now();
       const selectedFolderIndex = selectedIndex[0] || -1;
 
@@ -1026,17 +1122,98 @@ export function useCombinedOperations() {
 
   const handleAddEdge = useCallback(
     (source: string, target: string) => {
-      const graphAction: KnowledgeGraphAction = {
-        type: "insert_edge",
-        payload: { source, target },
+      // Retrieve the current file tree
+      const currentFiles = state.files; // Assuming you have access to state here
+
+      // Find the source and target files
+      const findFile = (
+        files: FileTreeObject[],
+        id: string
+      ): FileTreeObject | null => {
+        for (const file of files) {
+          if (file.type === "file" && file.id.toString() === id) {
+            return file;
+          }
+          if (file.type === "folder" && Array.isArray(file.contents)) {
+            const foundInFolder = findFile(file.contents, id);
+            if (foundInFolder) return foundInFolder;
+          }
+        }
+        return null;
       };
 
-      graphDispatch!(graphAction);
+      const sourceFile = findFile(currentFiles, source);
+      const targetFile = findFile(currentFiles, target);
+
+      if (!sourceFile || !targetFile) {
+        console.error("Source or target file not found");
+        return;
+      }
+
+      // Prepare edges, ensuring no duplicates
+      const newEdge = { source, target };
+      const updateEdges = (file: FileTreeObject) => {
+        const currentEdges = file.edges || [];
+        const edgeExists = currentEdges.some(
+          (edge) =>
+            (edge.source === source && edge.target === target) ||
+            (edge.source === target && edge.target === source)
+        );
+
+        if (!edgeExists) {
+          currentEdges.push(newEdge);
+        }
+
+        return currentEdges;
+      };
+
+      // Update source note's edges
+      const updatedSourceEdges = updateEdges(sourceFile);
+      sourceFile.edges = updatedSourceEdges;
+
+      // Update target note's edges
+      const updatedTargetEdges = updateEdges(targetFile);
+      targetFile.edges = updatedTargetEdges;
+
+      // Dispatch save actions for both files
+      console.log("Adding edge:", {
+        sourceId: source,
+        targetId: target,
+        sourceFile: sourceFile,
+        targetFile: targetFile,
+      });
+
+      // Dispatch save actions
+      fileDispatch({
+        type: "save_file",
+        payload: {
+          index: parseInt(source),
+          edges: updatedSourceEdges,
+          contents: sourceFile.contents,
+        },
+      });
+
+      fileDispatch({
+        type: "save_file",
+        payload: {
+          index: parseInt(target),
+          edges: updatedTargetEdges,
+          contents: targetFile.contents,
+        },
+      });
     },
-    [graphDispatch]
+    [fileDispatch, graphDispatch, state.files]
   );
 
   return { handleAddFile, handleDeleteFile, handleAddEdge };
+}
+
+export function useSaveContext() {
+  const context = useContext(SaveContext);
+  if (context === undefined) {
+    throw new Error("useSaveContext must be used within a SaveContextProvider");
+  }
+  return context;
 }
 
 export default UIProvider;

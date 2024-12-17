@@ -19,6 +19,7 @@ import {
 import FileDropdown from "@/components/ui/FileTree/FileDropdown";
 import FolderDropdown from "@/components/ui/FileTree/FolderDropdown";
 import { useSelectedEditContext } from "@/components/ui/UIProvider";
+import { SelectedEditIndexType } from "@/types";
 
 // Define types for file icons and collapsible component
 interface FILE_ICONS {
@@ -68,12 +69,12 @@ const Collapsible: React.FC<CollapsableComponent> = ({ children, isOpen }) => {
 
 /** File Component */
 const File = ({
-  id,
+  index,
   name,
   selection,
   contents,
 }: {
-  id: number;
+  index: number;
   name: string;
   selection: any;
   contents: Object;
@@ -83,17 +84,18 @@ const File = ({
 
   // Add this to get the currently edited file's info
   const { selectedEditIndex } = useSelectedEditContext();
+  const selectEdit: SelectedEditIndexType = selectedEditIndex!;
 
   /** Function to handle file selection */
   const handleSelection = () => {
-    selection.setSelectedIndex([id, name]);
+    selection.setSelectedIndex([index, name]);
   };
 
   /** Check if file is selected */
-  const isSelected: boolean = selection.selectedIndex[0] == id ? true : false;
+  const isSelected: boolean = selection.selectedIndex[0] == index ? true : false;
 
   /** Check if file is being edited */
-  const isBeingEdited: boolean = selectedEditIndex[0] === id;
+  const isBeingEdited: boolean = selectEdit?.index === index;
 
   // In the File component, replace the existing return with:
   return (
@@ -122,7 +124,7 @@ const File = ({
         {/* Dropdown is now positioned absolutely */}
         {isSelected && (
           <div className="absolute right-4">
-            <FileDropdown id={id} data={contents} name={name} />
+            <FileDropdown index={index} data={contents} name={name} />
           </div>
         )}
       </div>
@@ -132,12 +134,12 @@ const File = ({
 
 /** Folder component */
 const Folder = ({
-  id,
+  index,
   name,
   selection,
   children,
 }: {
-  id: number;
+  index: number;
   name: string;
   selection: any;
   children: any;
@@ -146,11 +148,11 @@ const Folder = ({
 
   /** Function to handle file selection */
   const handleSelection = () => {
-    selection.setSelectedIndex([id, name]);
+    selection.setSelectedIndex([index, name]);
   };
 
   // Check if folder is selected
-  const isSelected: boolean = selection.selectedIndex[0] == id ? true : false;
+  const isSelected: boolean = selection.selectedIndex[0] == index ? true : false;
 
   // Render folder component
   // In the Folder component, replace the existing return with:
@@ -162,7 +164,6 @@ const Folder = ({
     >
       <div className="pl-5 flex-col">
         <div className="flex items-center justify-between pr-4">
-          {" "}
           {/* Added justify-between and pr-4 */}
           <div className="flex items-center" onClick={handleSelection}>
             <AiOutlineFolder />
@@ -194,11 +195,6 @@ const Tree = ({ children }: any) => {
 
 /** Root component to render file tree */
 const Root = ({ data, selection }: any) => {
-  // Add better data validation
-  if (!data) {
-    // console.error("No data passed to Root");
-    return null;
-  }
 
   // If we received an object with a files property, use that
   const fileArray = Array.isArray(data)
@@ -206,12 +202,6 @@ const Root = ({ data, selection }: any) => {
     : data.files && Array.isArray(data.files)
     ? data.files
     : null;
-
-  if (!fileArray) {
-    // console.error("Invalid data structure passed to Root:", data);
-    return null;
-  }
-
   return (
     <div
       onContextMenu={(e) => {
@@ -225,14 +215,14 @@ const Root = ({ data, selection }: any) => {
           <div key={index} className="min-h-5">
             {item.type === "file" ? (
               <File
-                key={id} // Changed from index to id for better React key uniqueness
-                id={id}
+                key={id}
+                index={id}
                 name={name}
                 selection={selection}
                 contents={contents}
               />
             ) : item.type === "folder" ? (
-              <Folder key={id} id={id} name={name} selection={selection}>
+              <Folder key={id} index={id} name={name} selection={selection}>
                 <Root data={contents} selection={selection} />
               </Folder>
             ) : null}

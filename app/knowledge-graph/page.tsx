@@ -1,8 +1,6 @@
-// In app/knowledge-graph/page.tsx
 "use client";
 
 import React, {
-  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -129,6 +127,7 @@ const PlotlyChart = () => {
           z: [],
           line: { color: "black", width: 2 },
           hoverinfo: "none",
+          name: "Edges", // Add name for debugging
         },
         {
           type: "scatter3d",
@@ -145,6 +144,7 @@ const PlotlyChart = () => {
             line: { color: "black", width: 0.5 },
           },
           hoverinfo: "text",
+          name: "Nodes", // Add name for debugging
         },
       ],
     };
@@ -158,31 +158,44 @@ const PlotlyChart = () => {
       };
 
       nodes.edges.forEach((edge) => {
-        const sourceNode = nodes.nodes.find((n) => n.id === edge.source);
-        const targetNode = nodes.nodes.find((n) => n.id === edge.target);
+        const sourceNode: any = nodes.nodes.find((n) => n.id === edge.source);
+        const targetNode: any = nodes.nodes.find((n) => n.id === edge.target);
 
-        if (
-          sourceNode?.x != null &&
-          sourceNode?.y != null &&
-          sourceNode?.z != null &&
-          targetNode?.x != null &&
-          targetNode?.y != null &&
-          targetNode?.z != null
-        ) {
-          edgeTraces.x.push(sourceNode.x, targetNode.x, null);
-          edgeTraces.y.push(sourceNode.y, targetNode.y, null);
-          edgeTraces.z.push(sourceNode.z, targetNode.z, null);
+        if (sourceNode && targetNode) {
+          // Add the source point
+          edgeTraces.x.push(sourceNode.x);
+          edgeTraces.y.push(sourceNode.y);
+          edgeTraces.z.push(sourceNode.z);
+
+          // Add the target point
+          edgeTraces.x.push(targetNode.x);
+          edgeTraces.y.push(targetNode.y);
+          edgeTraces.z.push(targetNode.z);
+
+          // Add null to create a break in the line
+          edgeTraces.x.push(null);
+          edgeTraces.y.push(null);
+          edgeTraces.z.push(null);
         }
       });
 
+      // Update the first trace with the edge data
       updatedPlot.data[0] = {
         ...updatedPlot.data[0],
         x: edgeTraces.x,
         y: edgeTraces.y,
         z: edgeTraces.z,
+        type: "scatter3d",
+        mode: "lines",
+        line: {
+          color: "black",
+          width: 2,
+          dash: "solid", // Make sure lines are solid
+        },
+        opacity: 1, // Make sure lines are visible
+        showlegend: true, // Show in legend for debugging
       };
     }
-
     return updatedPlot;
   }, [nodes, plotData]);
 

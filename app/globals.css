@@ -6,6 +6,10 @@
   position: relative;
 }
 
+.purple-edge {
+  @apply text-purple-600;
+}
+
 .toolbar {
   position: sticky;
   display: flex;

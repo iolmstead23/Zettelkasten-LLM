@@ -9,6 +9,7 @@ import {
   useNotifyContentContext,
   useNotifyToggleContext,
   useSelectedEditContext,
+  useSaveContext,
 } from "@/components/ui/UIProvider";
 
 interface FileTreeObject {
@@ -24,35 +25,10 @@ export default function EditorFileOptions() {
   const notifyContent = useNotifyContentContext();
   const notifyToggle = useNotifyToggleContext();
   const fileLocation = useFileLocationContext();
+  const { saveFile } = useSaveContext();
 
+  const selectEdit = selectedEditIndex.selectedEditIndex;
   const selectedEditName = useRef<string>("");
-
-  // components/ui/EditorFileOptions.tsx
-  async function save(): Promise<void> {
-    try {
-      if (selectedEditIndex.selectedEditIndex[0] === -1) return;
-
-      // Show loading state
-      notifyContent.setNotifyContent(["info", "Saving..."]);
-      notifyToggle.setNotifyToggle(true);
-
-      await filetreeContext.dispatch({
-        type: "save_file",
-        payload: {
-          id: selectedEditIndex.selectedEditIndex[0],
-          contents: selectedEditIndex.selectedEditIndex[1],
-        },
-      });
-
-      // Show success
-      notifyContent.setNotifyContent(["success", "Save success!"]);
-    } catch (error) {
-      // Handle errors
-      notifyContent.setNotifyContent(["error", "Save failed"]);
-    } finally {
-      notifyToggle.setNotifyToggle(true);
-    }
-  }
 
   // Helper function to check if a file exists in the file tree
   function fileExists(files: FileTreeObject[], fileId: number): boolean {
@@ -74,19 +50,21 @@ export default function EditorFileOptions() {
 
   // Get the name of the currently selected file being edited and updating the state
   useEffect(() => {
-    const fileId = selectedEditIndex.selectedEditIndex[0];
+    const noteIndex = selectEdit?.index!;
     // If the file is not found or the file is not being edited, set the name to an empty string and reset the editors state
-    if (fileId === -1 || !fileExists(filetreeContext.state.files, fileId)) {
+    if (
+      noteIndex === -1 ||
+      !fileExists(filetreeContext.state.files, noteIndex)
+    ) {
       selectedEditName.current = "";
     } else {
-      selectedEditName.current =
-        (selectedEditIndex.selectedEditIndex[2] as string) ?? "";
+      selectedEditName.current = (selectEdit?.name as string) ?? "";
     }
   }, [selectedEditIndex.selectedEditIndex, filetreeContext.state.files]);
 
   // Array of items to be displayed in the dropdown menu
   const items: { name: string; action: () => void }[] = [
-    { name: "Save", action: save },
+    { name: "Save", action: saveFile },
     { name: "Import", action: () => {} },
   ];
 
@@ -131,7 +109,7 @@ export default function EditorFileOptions() {
       <div>
         <div className="px-5 pt-2">
           {
-            // This displays the edited files location in the filetree
+            // This displays the edited files location in the file tree
             `File Location /
                     ${fileLocation.fileLocation
                       .map((item: any) =>

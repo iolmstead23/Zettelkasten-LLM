@@ -16,11 +16,11 @@ function classNames(...classes: any) {
 
 /** This keeps track of the dropdown options that allow FileTree actions */
 export default function FileDropdown({
-  id,
+  index,
   data,
   name,
 }: {
-  id: number;
+  index: number;
   data: any;
   name: string;
 }) {
@@ -65,11 +65,25 @@ export default function FileDropdown({
                     active ? "bg-gray-100 text-gray-900" : "text-gray-700",
                     "block px-4 py-2 text-sm"
                   )}
+                  // In FileDropdown.tsx
                   onClick={() => {
-                    selectEditContext.setSelectedEditIndex([id, data, name]);
-                    // This sets the file location to the root
-                    fileLocation.setFileLocation([""]);
-                    sortIndex.setIndexSort(true);
+                    try {
+                      // Ensure we're working with the proper structure
+                      const contentData = Array.isArray(data) ? data[0] : data;
+
+                      selectEditContext.setSelectedEditIndex({
+                        index: index,
+                        contents: contentData,
+                        name: name,
+                      });
+                      fileLocation.setFileLocation([""]);
+                      sortIndex.setIndexSort(true);
+                    } catch (err) {
+                      console.error(
+                        "Error in FileDropdown click handler:",
+                        err
+                      );
+                    }
                   }}
                 >
                   Edit

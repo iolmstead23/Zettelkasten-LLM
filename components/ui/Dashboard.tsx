@@ -16,23 +16,38 @@ import Notification from "@/components/ui/Notification";
 import FileInfoDisplay from "@/components/ui//FileInfoDisplay";
 import EditorFileOptions from "@/components/ui/EditorFileOptions";
 import DeleteItem from "@/components/ui/FileTree/DeleteConfirmDialog";
-import EditorComponent from "@/components/EditorComponent";
+import EditorComponent from "@/components/editor/EditorComponent";
+import Link from "next/link";
 
 const coverScreen = () => {
   return (
     <div className="w-full h-[80vh] flex items-left border border-gray-200 rounded-lg bg-white">
       <p className="p-10 leading-loose">
         Welcome to your new Zettelkasten System. I am glad you are here. <br />
-        To begin select a note labeled with .md by clicking on it <br />
-        Then click on the Menu dropdown marked with a down arrow and select Edit{" "}
-        <br />
-        File Options will appear to Save.
+        To begin select a note labeled with .md by clicking on it. <br />
+        Then click on the Menu dropdown marked with a down arrow and select Edit
         <br />
         <br />
-        You can also create folders to store your notes
+        File Options will appear on the top of the editor.
+        <br />
+        Make sure to save all of your work.{" "}
+        <span className="text-lg font-bold:">
+          !! Linked Edges won't work unless they are saved first!!
+        </span>
+        <br />
+        You can create new files and also create folders to store your notes
         <br />
         <br />
         Please enjoy!
+        <br />
+        <br />
+        Developed by Ian Olmstead.{" "}
+        <Link
+          href="https://github.com/iolmstead23/Zettelkasten-LLM"
+          className="font-bold text-lg text-purple-600"
+        >
+          Link to my project repo
+        </Link>
       </p>
     </div>
   );
@@ -46,13 +61,13 @@ export default function Dashboard() {
   const deleteToggle = useDeleteToggleContext();
   /** This lets us turn the new item dialog on and off */
   const newItemToggle = useNewItemToggleContext();
-  /** This keeps track of which item is selected on the filetree */
+  /** This keeps track of which item is selected on the file tree */
   const selectedInfo = useSelectedIndexContext();
   /** This allows us to trigger a notification */
   const notifyToggle = useNotifyToggleContext();
 
   const { selectedEditIndex } = useSelectedEditContext();
-  const selectedIndex = selectedEditIndex[0];
+  const selectedIndex = selectedEditIndex?.index;
 
   return (
     <main className="xl:pl-72 max-h-full">

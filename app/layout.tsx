@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
-import Sidebars from "@/components/ui/Sidebars";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
 import UIProvider from "@/components/ui/UIProvider";
+import dynamic from "next/dynamic";
+
+// Dynamically import Sidebars with no SSR to prevent hydration issues
+const Sidebars = dynamic(() => import("@/components/ui/Sidebars"), {
+  ssr: false,
+});
 
 const inter = Inter({ subsets: ["latin"] });
 

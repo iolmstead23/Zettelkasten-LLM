@@ -1,3 +1,5 @@
+import { EditorState } from "lexical";
+
 declare module "@/types" {
   export interface Node {
     id: string;
@@ -8,10 +10,8 @@ declare module "@/types" {
   }
 
   export interface Edge {
-    id: string;
     source: string;
     target: string;
-    label?: string;
   }
 
   export interface GraphData {
@@ -120,14 +120,20 @@ declare module "@/types" {
     dispatch: React.Dispatch<Action>;
   }
 
-  export interface selectedIndexState {
+  export interface SelectedIndexState {
     selectedIndex: [number, string];
     setSelectedIndex: (e: [number, string]) => void;
   }
 
-  export interface SelectedEditIDState {
-    selectedEditIndex: [number, Object, string]; // Add content as the fourth element
-    setSelectedEditIndex: (e: [number, Object, string]) => void;
+  export interface SelectedEditIndexType {
+    index: number;
+    contents: any;
+    name: string;
+  }
+
+  export interface SelectedEditIndexContextType {
+    selectedEditIndex: SelectedEditIndexType;
+    setSelectedEditIndex: Dispatch<SetStateAction<SelectedEditIndexType>>;
   }
 
   export interface RenameToggleState {
@@ -163,5 +169,11 @@ declare module "@/types" {
   export interface FileLocationState {
     fileLocation: string[];
     setFileLocation: (e: string[]) => void;
+  }
+
+  export interface SerializedEdgeNode extends SerializedTextNode {
+    type: "edge";
+    id: string;
+    text: string;
   }
 }
